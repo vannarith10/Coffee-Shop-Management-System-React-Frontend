@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import CashierPOS from "./pages/CashierPOS";
-import BaristaKitchen from "./pages/BaristaKitchen";
+import BaristaKitchen from "./pages/BaristaDashboard";
 import Unauthorized from "./pages/Unauthorized";
 import { getAccessToken, getUserRole } from "./services/authService";
 

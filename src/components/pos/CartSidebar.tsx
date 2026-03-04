@@ -18,7 +18,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   const outOfStockInCart = cart.filter((item) => item.in_stock === false);
 
   return (
-    <aside className="w-96 bg-white/95 backdrop-blur-sm shadow-2xl border-l flex flex-col h-screen flex-shrink-0">
+    <aside className="w-96 bg-white/95 backdrop-blur-sm shadow-2xl border-l flex flex-col h-screen flex-shrink-0 ">
       {/* Header */}
       <div className="p-4 border-b bg-gray-50/80 flex justify-between items-center flex-shrink-0">
         <div>
@@ -45,15 +45,15 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
       )}
 
       {/* Cart Items */}
-      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 bg-[linear-gradient(-225deg,#69EACB_0%,#EACCF8_48%,#6654F1_100%)] overflow-hidden flex flex-col min-h-0">
         {cart.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-            <p className="text-4xl mb-2">🛒</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-600">
+            <p className="text-6xl mb-2">🛒</p>
             <p>Cart is empty</p>
-            <p className="text-xs mt-1 text-gray-300">Click items to add</p>
+            <p className="text-xs mt-1 text-gray-500">Click items to add</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <div className="flex-1 overflow-y-auto p-4 space-y-2 [&::-webkit-scrollbar]:hidden">
             {cart.map((item) => (
               <CartItemRow
                 key={item.id}

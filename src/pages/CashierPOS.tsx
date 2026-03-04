@@ -15,6 +15,7 @@ import { TypeFilter } from "../components/pos/TypeFilter";
 
 import {RefreshLoadingScreen} from "../components/LoadingScreen"
 
+
 export default function CashierPOS() {
   const navigate = useNavigate();
   const user = getUser();
@@ -90,10 +91,12 @@ export default function CashierPOS() {
   if (loading) return <LoadingScreen message="Loading menu..." />;
   if (error) return <ErrorScreen error={error} onRetry={refetch} />;
 
+
+
   return (
-    <div className="h-screen bg-gray-200 flex overflow-hidden">
+    <div className="h-screen flex overflow-hidden " >
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 h-full">
+      <div className="flex-1 flex flex-col min-w-0 h-full" >
         {/* Header Section */}
         <header className="bg-white shadow-sm border-b px-6 py-4 flex-shrink-0">
           <Header
@@ -118,9 +121,11 @@ export default function CashierPOS() {
         </header>
 
         {/* Products Grid */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        
+        <main className="flex-1 p-6 overflow-y-auto bg-cover bg-center bg-no-repeat [&::-webkit-scrollbar]:hidden" 
+              style={{ backgroundImage: 'url(https://wallpapercave.com/wp/wp8965797.jpg)' }}>
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 ">
               <p className="text-gray-500 text-lg">No products found</p>
             </div>
           ) : (
@@ -132,6 +137,8 @@ export default function CashierPOS() {
             />
           )}
         </main>
+
+        
       </div>
 
       {/* Cart Sidebar */}
