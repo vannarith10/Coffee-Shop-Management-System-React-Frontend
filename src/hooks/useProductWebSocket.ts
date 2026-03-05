@@ -1,3 +1,5 @@
+// src/hooks/useProductWebSocket.ts
+
 import { useEffect, useCallback } from "react";
 import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
 import { Product, ProductUpdateEvent } from "../types";
