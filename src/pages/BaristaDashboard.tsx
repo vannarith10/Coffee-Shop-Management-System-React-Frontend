@@ -18,7 +18,9 @@ import {
   getRefreshToken, 
   isRefreshTokenExpired, 
   clearAuth,
-  logout
+  logout,
+  refreshAccessToken,
+  authFetch
 } from '../services/authService';
 
 // --- Types ---
@@ -63,103 +65,15 @@ interface Order {
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
-// Track if we're currently refreshing to prevent multiple refresh calls
-let isRefreshing = false;
-let refreshPromise: Promise<string> | null = null;
-
-const refreshAccessToken = async (): Promise<string> => {
-  // If already refreshing, return the existing promise
-  if (isRefreshing && refreshPromise) {
-    return refreshPromise;
-  }
-
-  isRefreshing = true;
-  
-  refreshPromise = (async () => {
-    try {
-      const refreshToken = getRefreshToken();
-      
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      if (isRefreshTokenExpired()) {
-        throw new Error('Refresh token expired');
-      }
-
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Refresh failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // Store new tokens
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refresh.token);
-      localStorage.setItem('refreshExpiresAt', data.refresh.expiresAt);
-      
-      return data.accessToken;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      throw error;
-    } finally {
-      isRefreshing = false;
-      refreshPromise = null;
-    }
-  })();
-
-  return refreshPromise;
-};
-
+// Use centralized authFetch from authService
 const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
-  let token = getAccessToken();
+  const response = await authFetch(url, options);
   
-  // If no token or about to check, try to refresh first
-  if (!token) {
-    try {
-      token = await refreshAccessToken();
-    } catch (err) {
-      // Refresh failed, will try original request and handle 401
-    }
-  }
-
-  const makeRequest = (authToken: string | null): Promise<Response> => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string> || {})
-    };
-    
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    return fetch(url, {
-      ...options,
-      headers,
-    });
-  };
-
-  let response = await makeRequest(token);
-
-  // If 401, try to refresh and retry once
+  // Handle session expiration from authFetch
   if (response.status === 401) {
-    try {
-      const newToken = await refreshAccessToken();
-      response = await makeRequest(newToken);
-    } catch (refreshError) {
-      // Refresh failed, clear auth and throw
-      clearAuth();
-      throw new Error('SESSION_EXPIRED');
-    }
+    throw new Error('SESSION_EXPIRED');
   }
-
+  
   return response;
 };
 
@@ -207,12 +121,12 @@ const mapStatus = (apiStatus: string): OrderStatus => {
 };
 
 const FALLBACK_IMAGES: Record<string, string> = {
-  'Espresso': 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=100&h=100&fit=crop',
-  'Coffee': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop',
-  'Latte': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=100&h=100&fit=crop',
-  'Tea': 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=100&h=100&fit=crop',
-  'Strawberry': 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=100&h=100&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop',
+  'Espresso': 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=100&h=100&fit=crop ',
+  'Coffee': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop ',
+  'Latte': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=100&h=100&fit=crop ',
+  'Tea': 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=100&h=100&fit=crop ',
+  'Strawberry': 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=100&h=100&fit=crop ',
+  'default': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop ',
 };
 
 const getFallbackImage = (itemName: string): string => {

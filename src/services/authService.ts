@@ -29,6 +29,9 @@ export interface RefreshResponse {
 
 
 
+
+
+
 export async function login(username: string, password: string): Promise<LoginResponse> {
   const res = await fetch(`${API_URL}/login`, {
     method: "POST",
@@ -49,6 +52,88 @@ export async function login(username: string, password: string): Promise<LoginRe
 
   return data;
 }
+
+
+let refreshPromise: Promise<string> | null = null;
+
+export async function refreshAccessToken(): Promise<string> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = getRefreshToken();
+
+    if (!refreshToken) {
+      logout();
+      throw new Error("No refresh token available");
+    }
+
+    if (isRefreshTokenExpired()) {
+      logout();
+      throw new Error("Refresh token expired");
+    }
+
+    const res = await fetch("http://localhost:8080/api/v1/token/get-access-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token: refreshToken }),
+    });
+
+    if (!res.ok) {
+      logout();
+      throw new Error("Failed to refresh access token");
+    }
+
+    const data: RefreshResponse = await res.json();
+
+    setAccessToken(data.accessToken);
+    setRefreshToken(data.refresh.token, data.refresh.expiresAt);
+
+    return data.accessToken;
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
+
+
+
+export async function authFetch(url: string, options: RequestInit = {}) {
+  let token = getAccessToken();
+
+  const headers: HeadersInit = {
+    ...(options.headers || {}),
+    Authorization: `Bearer ${token}`,
+  };
+
+  const res = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (res.status === 401) {
+    token = await refreshAccessToken();
+
+    const retryHeaders: HeadersInit = {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    };
+
+    return fetch(url, {
+      ...options,
+      headers: retryHeaders,
+    });
+  }
+
+  return res;
+}
+
+
 
 
 
