@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, RefreshCw } from 'lucide-react';
+import { Toaster } from 'sonner';
 import { logout } from '../services/authService';
 import { useOrders } from '../hooks/useOrders';
 import { Order, OrderStatus } from '../types/order';
 import { Header } from '../components/barista/Header';
-import { OrderCard } from '../components/barista/OrderCard';
 import { StatItem } from '../components/barista/StatItem';
 import { EmptyState } from '../components/barista/EmptyState';
 import { LoadingState } from '../components/barista/LoadingState';
 import { ErrorState } from '../components/barista/ErrorState';
-import { MasonryGrid } from '../components/ui/MasonryGrid';
+import { OrderGrid } from '../components/barista/OrderGrid';
 
 type TabKey = 'all' | 'preparing' | 'done';
 
@@ -73,21 +73,9 @@ export default function BaristaScreen() {
     }
   }, [isSessionExpired, handleLoginRedirect, loadOrders]);
 
-  const handleUpdateStatus = useCallback((id: string) => {
-    setLocalOrders(prev => prev.map(order => {
-      if (order.id === id) {
-        if (order.status === 'QUEUED' || order.status === 'PENDING' || order.status === 'LATE') {
-          return { ...order, status: 'PREPARING' as OrderStatus };
-        } else if (order.status === 'PREPARING') {
-          return { 
-            ...order, 
-            status: 'DONE' as OrderStatus, 
-            items: order.items.map(i => ({ ...i, isCompleted: true })) 
-          };
-        }
-      }
-      return order;
-    }));
+  // NEW: Handle orders update from OrderGrid (optimistic updates)
+  const handleOrdersUpdate = useCallback((updater: (prev: Order[]) => Order[]) => {
+    setLocalOrders(prev => updater(prev));
   }, []);
 
   const filteredOrders = filterOrders(localOrders, activeTab);
@@ -107,6 +95,8 @@ export default function BaristaScreen() {
 
   return (
     <div className="min-h-screen bg-[#f6f8f6] dark:bg-[#0a0a0a] text-slate-900 dark:text-slate-100 font-sans selection:bg-emerald-500/30">
+      <Toaster position="top-right" richColors />
+      
       <Header 
         currentTime={currentTime}
         activeTab={activeTab}
@@ -140,17 +130,15 @@ export default function BaristaScreen() {
           </div>
         </div>
 
-        {filteredOrders.length === 0 && <EmptyState />}
-
-        <MasonryGrid>
-          {filteredOrders.map((order) => (
-            <OrderCard 
-              key={order.id} 
-              order={order} 
-              onUpdateStatus={handleUpdateStatus}
-            />
-          ))}
-        </MasonryGrid>
+        {/* Order Grid */}
+        {filteredOrders.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <OrderGrid 
+            orders={filteredOrders} 
+            onOrdersUpdate={handleOrdersUpdate}
+          />
+        )}
 
         <footer className="mt-12 p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-8 items-center justify-around shadow-sm">
           <StatItem label="Avg Prep Time" value="2m 45s" />

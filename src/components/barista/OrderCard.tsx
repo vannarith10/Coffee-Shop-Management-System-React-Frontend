@@ -1,12 +1,13 @@
-import React from 'react';
-import { Timer, MoreHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+import { Timer, MoreHorizontal, Loader2 } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 import { OrderItemRow } from './OrderItemRow';
 import { Order, OrderStatus } from '../../types/order';
 
 interface OrderCardProps {
   order: Order;
-  onUpdateStatus: (id: string) => void;
+  onUpdateStatus: (id: string, newStatus: 'PREPARING' | 'DONE') => Promise<void>;
+  isUpdating?: boolean;
 }
 
 const borderStyles: Record<OrderStatus, string> = {
@@ -57,12 +58,35 @@ const noteTextStyles: Record<OrderStatus, string> = {
   DONE: 'text-blue-600',
 };
 
-export const OrderCard: React.FC<OrderCardProps> = ({ order, onUpdateStatus }) => {
+export const OrderCard: React.FC<OrderCardProps> = ({ 
+  order, 
+  onUpdateStatus,
+  isUpdating = false 
+}) => {
+  const [localLoading, setLocalLoading] = useState(false);
   const isDone = order.status === 'DONE';
+  const isLoading = isUpdating || localLoading;
+
+  const handleClick = async () => {
+    if (isDone || isLoading) return;
+
+    const nextStatus: 'PREPARING' | 'DONE' = 
+      order.status === 'PREPARING' ? 'DONE' : 'PREPARING';
+
+    setLocalLoading(true);
+    try {
+      await onUpdateStatus(order.id, nextStatus);
+    } catch (error) {
+      // Error is handled by parent (toast shown), just stop loading
+      console.error('Failed to update:', error);
+    } finally {
+      setLocalLoading(false);
+    }
+  };
 
   return (
-    <div className="masonry-item">
-      <div className={`flex flex-col bg-white dark:bg-slate-900 rounded-2xl border-2 ${borderStyles[order.status]} shadow-xl overflow-hidden transition-all hover:scale-[1.01]`}>
+    <div className="break-inside-avoid mb-6">
+      <div className={`flex flex-col bg-white dark:bg-slate-900 rounded-2xl border-2 ${borderStyles[order.status]} shadow-xl overflow-hidden transition-all hover:scale-[1.01] ${isLoading ? 'opacity-70' : ''}`}>
         
         <div className={`p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start ${headerBgStyles[order.status]}`}>
           <div>
@@ -82,7 +106,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onUpdateStatus }) =
         </div>
 
         <div className="p-4">
-          <div className="space-y-1 max-h-64 overflow-y-auto custom-scrollbar">
+          <div className="space-y-1 overflow-y-auto custom-scrollbar">
             {order.items.map((item) => (
               <OrderItemRow 
                 key={item.id} 
@@ -111,11 +135,18 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onUpdateStatus }) =
 
         <div className="p-4 bg-slate-50 dark:bg-slate-800/50">
           <button 
-            onClick={() => !isDone && onUpdateStatus(order.id)}
-            disabled={isDone}
-            className={`w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-wider transition-all border ${btnStyles[order.status]}`}
+            onClick={handleClick}
+            disabled={isDone || isLoading}
+            className={`w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-wider transition-all border flex items-center justify-center gap-2 ${btnStyles[order.status]}`}
           >
-            {btnText[order.status]}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {order.status === 'PREPARING' ? 'Finishing...' : 'Starting...'}
+              </>
+            ) : (
+              btnText[order.status]
+            )}
           </button>
         </div>
       </div>

@@ -7,7 +7,6 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { ErrorScreen } from "../components/ErrorScreen";
 import { Header } from "../components/pos/common/Header";
 import { SearchBar } from "../components/pos/common/SearchBar";
-// import { CategoryFilter } from "../components/pos/CategoryFilter";
 import { ProductGrid } from "../components/pos/ProductGrid";
 import { CartSidebar } from "../components/pos/CartSidebar";
 import { NameFilter } from "../components/pos/NameFilter";
