@@ -1,86 +1,160 @@
-const audioContext = typeof window !== 'undefined' ? new (window.AudioContext || (window as any).webkitAudioContext)() : null;
 
-export const playSound = (type: 'start' | 'complete' | 'new-order') => {
+const audioContext = typeof window !== 'undefined' 
+  ? new (window.AudioContext || (window as any).webkitAudioContext)() 
+  : null;
+
+export const playSound = (type: 'start' | 'complete' | 'new-order' | 'notification' | 'price-change' | 'restock' | 'alert') => {
   if (!audioContext) return;
 
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
+  const now = audioContext.currentTime;
 
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
+  const createOscillator = (freq: number, start: number, duration: number, type: OscillatorType = 'sine') => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now + start);
+    gain.gain.setValueAtTime(0, now + start);
+    gain.gain.linearRampToValueAtTime(0.3, now + start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + start + duration);
+    osc.start(now + start);
+    osc.stop(now + start + duration);
+    return { osc, gain };
+  };
 
-  if (type === 'start') {
-    // Higher pitch pop for "Start Preparing"
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
-  } else if (type === 'complete') {
-    // Success chime for "Done" - two tones
-    const osc1 = audioContext.createOscillator();
-    const gain1 = audioContext.createGain();
-    osc1.connect(gain1);
-    gain1.connect(audioContext.destination);
-    
-    osc1.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-    gain1.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-    osc1.start(audioContext.currentTime);
-    osc1.stop(audioContext.currentTime + 0.3);
+  switch (type) {
+    case 'start': // Barista: Start Preparing
+      createOscillator(800, 0, 0.1);
+      createOscillator(400, 0.05, 0.1);
+      break;
 
-    const osc2 = audioContext.createOscillator();
-    const gain2 = audioContext.createGain();
-    osc2.connect(gain2);
-    gain2.connect(audioContext.destination);
-    
-    osc2.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
-    gain2.gain.setValueAtTime(0.3, audioContext.currentTime + 0.1);
-    gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-    osc2.start(audioContext.currentTime + 0.1);
-    osc2.stop(audioContext.currentTime + 0.4);
-  } else if (type === 'new-order') {
-    // 🔔 Doorbell/Ding sound for new order - three ascending tones
-    const now = audioContext.currentTime;
-    
-    // First ding (lower)
-    const osc1 = audioContext.createOscillator();
-    const gain1 = audioContext.createGain();
-    osc1.connect(gain1);
-    gain1.connect(audioContext.destination);
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(440, now); // A4
-    gain1.gain.setValueAtTime(0, now);
-    gain1.gain.linearRampToValueAtTime(0.4, now + 0.05);
-    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-    osc1.start(now);
-    osc1.stop(now + 0.5);
+    case 'complete': // Barista: Order Done
+      createOscillator(523.25, 0, 0.3); // C5
+      createOscillator(659.25, 0.1, 0.3); // E5
+      break;
 
-    // Second ding (higher, slightly delayed)
-    const osc2 = audioContext.createOscillator();
-    const gain2 = audioContext.createGain();
-    osc2.connect(gain2);
-    gain2.connect(audioContext.destination);
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(554.37, now + 0.15); // C#5
-    gain2.gain.setValueAtTime(0, now + 0.15);
-    gain2.gain.linearRampToValueAtTime(0.4, now + 0.2);
-    gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
-    osc2.start(now + 0.15);
-    osc2.stop(now + 0.7);
+    case 'new-order': // Barista: New Order
+      createOscillator(440, 0, 0.5);      // A4
+      createOscillator(554.37, 0.15, 0.5); // C#5
+      createOscillator(659.25, 0.3, 0.6);   // E5
+      break;
 
-    // Third ding (highest)
-    const osc3 = audioContext.createOscillator();
-    const gain3 = audioContext.createGain();
-    osc3.connect(gain3);
-    gain3.connect(audioContext.destination);
-    osc3.type = 'sine';
-    osc3.frequency.setValueAtTime(659.25, now + 0.3); // E5
-    gain3.gain.setValueAtTime(0, now + 0.3);
-    gain3.gain.linearRampToValueAtTime(0.4, now + 0.35);
-    gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
-    osc3.start(now + 0.3);
-    osc3.stop(now + 0.9);
+    case 'notification': // Cashier: General update
+      createOscillator(600, 0, 0.15);
+      break;
+
+    case 'price-change': // Cashier: Price updated
+      createOscillator(880, 0, 0.1);    // A5
+      createOscillator(1108.73, 0.08, 0.15); // C#6
+      break;
+
+    case 'restock': // Cashier: Back in stock
+      createOscillator(523.25, 0, 0.2);   // C5
+      createOscillator(659.25, 0.1, 0.2);  // E5
+      createOscillator(783.99, 0.2, 0.3);  // G5
+      break;
+
+    case 'alert': // Cashier: Out of stock / Deleted
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.3);
+      break;
   }
 };
+
+
+// const audioContext = typeof window !== 'undefined' ? new (window.AudioContext || (window as any).webkitAudioContext)() : null;
+
+// export const playSound = (type: 'start' | 'complete' | 'new-order' | 'notification' | 'price-change' | 'restock' | 'alert') => {
+//   if (!audioContext) return;
+
+//   const oscillator = audioContext.createOscillator();
+//   const gainNode = audioContext.createGain();
+
+//   oscillator.connect(gainNode);
+//   gainNode.connect(audioContext.destination);
+
+//   if (type === 'start') {
+//     // Higher pitch pop for "Start Preparing"
+//     oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+//     oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+//     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+//     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+//     oscillator.start(audioContext.currentTime);
+//     oscillator.stop(audioContext.currentTime + 0.1);
+//   } else if (type === 'complete') {
+//     // Success chime for "Done" - two tones
+//     const osc1 = audioContext.createOscillator();
+//     const gain1 = audioContext.createGain();
+//     osc1.connect(gain1);
+//     gain1.connect(audioContext.destination);
+    
+//     osc1.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+//     gain1.gain.setValueAtTime(0.3, audioContext.currentTime);
+//     gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+//     osc1.start(audioContext.currentTime);
+//     osc1.stop(audioContext.currentTime + 0.3);
+
+//     const osc2 = audioContext.createOscillator();
+//     const gain2 = audioContext.createGain();
+//     osc2.connect(gain2);
+//     gain2.connect(audioContext.destination);
+    
+//     osc2.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+//     gain2.gain.setValueAtTime(0.3, audioContext.currentTime + 0.1);
+//     gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+//     osc2.start(audioContext.currentTime + 0.1);
+//     osc2.stop(audioContext.currentTime + 0.4);
+//   } else if (type === 'new-order') {
+//     // 🔔 Doorbell/Ding sound for new order - three ascending tones
+//     const now = audioContext.currentTime;
+    
+//     // First ding (lower)
+//     const osc1 = audioContext.createOscillator();
+//     const gain1 = audioContext.createGain();
+//     osc1.connect(gain1);
+//     gain1.connect(audioContext.destination);
+//     osc1.type = 'sine';
+//     osc1.frequency.setValueAtTime(440, now); // A4
+//     gain1.gain.setValueAtTime(0, now);
+//     gain1.gain.linearRampToValueAtTime(0.4, now + 0.05);
+//     gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+//     osc1.start(now);
+//     osc1.stop(now + 0.5);
+
+//     // Second ding (higher, slightly delayed)
+//     const osc2 = audioContext.createOscillator();
+//     const gain2 = audioContext.createGain();
+//     osc2.connect(gain2);
+//     gain2.connect(audioContext.destination);
+//     osc2.type = 'sine';
+//     osc2.frequency.setValueAtTime(554.37, now + 0.15); // C#5
+//     gain2.gain.setValueAtTime(0, now + 0.15);
+//     gain2.gain.linearRampToValueAtTime(0.4, now + 0.2);
+//     gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+//     osc2.start(now + 0.15);
+//     osc2.stop(now + 0.7);
+
+//     // Third ding (highest)
+//     const osc3 = audioContext.createOscillator();
+//     const gain3 = audioContext.createGain();
+//     osc3.connect(gain3);
+//     gain3.connect(audioContext.destination);
+//     osc3.type = 'sine';
+//     osc3.frequency.setValueAtTime(659.25, now + 0.3); // E5
+//     gain3.gain.setValueAtTime(0, now + 0.3);
+//     gain3.gain.linearRampToValueAtTime(0.4, now + 0.35);
+//     gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
+//     osc3.start(now + 0.3);
+//     osc3.stop(now + 0.9);
+//   }
+// };
