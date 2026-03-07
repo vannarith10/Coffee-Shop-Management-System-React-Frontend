@@ -1,9 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+//src/components/barista/OrderGrid.tsx
+import React, { useState, useCallback } from 'react';
 import { Order, OrderStatus } from '../../types/order';
 import { OrderCard } from './OrderCard';
 import { updateOrderStatus, OrderStatusUpdate } from '../../services/orderService';
 import { toast } from 'sonner';
 import { playSound } from '../../utils/sound';
+
 
 interface OrderGridProps {
   orders: Order[];
@@ -14,9 +16,7 @@ interface OrderGridProps {
 const groupByStatus = (orders: Order[]) => {
   const groups: Record<OrderStatus, Order[]> = {
     QUEUED: [],
-    PENDING: [],
     PREPARING: [],
-    LATE: [],
     DONE: [],
   };
 
@@ -27,16 +27,19 @@ const groupByStatus = (orders: Order[]) => {
   return groups;
 };
 
+
 // Sort orders by createdAt (older first)
 const sortByDateAsc = (a: Order, b: Order) => {
   return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 };
 
+
 // Helper to determine next status based on current status
-const getNextStatus = (currentStatus: OrderStatus): 'PREPARING' | 'DONE' => {
-  if (currentStatus === 'PREPARING') return 'DONE';
-  return 'PREPARING';
-};
+// const getNextStatus = (currentStatus: OrderStatus): 'PREPARING' | 'DONE' => {
+//   if (currentStatus === 'PREPARING') return 'DONE';
+//   return 'PREPARING';
+// };
+
 
 // Helper to determine previous status for revert
 const getPreviousStatus = (currentStatus: OrderStatus, attemptedStatus: 'PREPARING' | 'DONE'): OrderStatus => {
@@ -44,72 +47,55 @@ const getPreviousStatus = (currentStatus: OrderStatus, attemptedStatus: 'PREPARI
   return 'QUEUED';
 };
 
-export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) => {
+
+export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) => 
+{
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   
-  // Track previous orders to detect new ones
-  const prevOrdersRef = useRef<Order[]>([]);
-  const hasInitializedRef = useRef(false);
 
-  // 🔔 Detect new orders and play sound
-  useEffect(() => {
-    // Skip on first render (initial load)
-    if (!hasInitializedRef.current) {
-      hasInitializedRef.current = true;
-      prevOrdersRef.current = orders;
+  const handleUpdateStatus = useCallback(async (orderId: string, newStatus: OrderStatusUpdate) => {
+    if (updatingOrderId) return;
+
+    // Find current status before any updates
+    const currentOrder = orders.find(o => o.id === orderId);
+    if (!currentOrder) {
+      toast.error("Order not found");
       return;
     }
+    
+    const currentStatus = currentOrder?.status ?? 'QUEUED';
+    const orderNum = currentOrder?.orderNumber;
+    
+    setUpdatingOrderId(orderId);
 
-    // Find new orders (exist in current but not in previous)
-    const currentIds = new Set(orders.map(o => o.id));
-    const prevIds = new Set(prevOrdersRef.current.map(o => o.id));
-    
-    const newOrders = orders.filter(o => !prevIds.has(o.id));
-    
-    // Play sound and toast for each new order
-    newOrders.forEach(order => {
-      playSound('new-order');
-      toast.info(`New order #${order.orderNumber} arrived!`, {
-        icon: '🔔',
-        duration: 5000,
+
+    onOrdersUpdate((prev) => {
+      const order = prev.find(o => o.id === orderId);
+      if (!order) return prev;
+
+      return prev.map((o) => {
+        if (o.id !== orderId) return o;
+
+        return {
+          ...o,
+          status: newStatus as OrderStatus,
+          items: newStatus === 'DONE' ? o.items.map((i) => ({...i, isCompleted: true})) : o.items,
+        };
       });
     });
 
-    // Update ref for next comparison
-    prevOrdersRef.current = orders;
-  }, [orders]);
 
-  const handleUpdateStatus = useCallback(async (orderId: string, newStatus: OrderStatusUpdate) => {
-    setUpdatingOrderId(orderId);
-
-    const currentOrder = orders.find(o => o.id === orderId);
-    const currentStatus = currentOrder?.status ?? 'QUEUED';
-
-    // Optimistic update
-    onOrdersUpdate((prev) => prev.map((order) => {
-      if (order.id !== orderId) return order;
-      
-      const nextStatus = newStatus as OrderStatus;
-      return {
-        ...order,
-        status: nextStatus,
-        items: nextStatus === 'DONE' 
-          ? order.items.map((i) => ({ ...i, isCompleted: true }))
-          : order.items,
-      };
-    }));
 
     try {
       const response = await updateOrderStatus(orderId, newStatus);
       
-      const orderNum = orders.find(o => o.id === orderId)?.orderNumber;
       
       if (newStatus === 'PREPARING') {
         playSound('start');
-        toast.success(`Order #${orderNum} started preparing!`);
+        toast.success(`Order #${orderNum} started PREPARING!`);
       } else {
         playSound('complete');
-        toast.success(`Order #${orderNum} completed! 🎉`);
+        toast.success(`Order #${orderNum} DONE! 🎉`);
       }
       
       console.log('Status updated:', response);
@@ -136,46 +122,58 @@ export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) 
     } finally {
       setUpdatingOrderId(null);
     }
-  }, [orders, onOrdersUpdate]);
+  }, [orders, onOrdersUpdate, updatingOrderId]);
+
+
 
   // Sort all orders by date (oldest first)
   const sortedOrders = [...orders].sort(sortByDateAsc);
   const grouped = groupByStatus(sortedOrders);
 
+  
   const statusConfig: Record<OrderStatus, { label: string; color: string; emoji: string }> = {
-    LATE: { label: 'Late Orders', color: 'red', emoji: '🔥' },
     PREPARING: { label: 'Preparing', color: 'emerald', emoji: '⚡' },
-    PENDING: { label: 'Pending', color: 'amber', emoji: '⏳' },
     QUEUED: { label: 'Queued', color: 'slate', emoji: '📋' },
     DONE: { label: 'Completed', color: 'blue', emoji: '✅' },
   };
 
-  const glassHeader = (color: string) => `
-    text-lg font-bold mb-4 
-    inline-flex items-center justify-center gap-2
-    p-2 px-4
-    rounded-[14px]
-    backdrop-blur-md
-    bg-gradient-to-br from-white/20 via-white/[0.08] to-white/[0.03]
-    shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
-    active:scale-95
-    ${color === 'red' ? 'text-red-200' : ''}
-    ${color === 'emerald' ? 'text-emerald-200' : ''}
-    ${color === 'amber' ? 'text-amber-200' : ''}
-    ${color === 'slate' ? 'text-slate-200' : ''}
-    ${color === 'blue' ? 'text-blue-200' : ''}
-  `;
 
-  const activeStatuses: OrderStatus[] = ['LATE', 'PREPARING', 'PENDING', 'QUEUED'];
-  const hasActiveOrders = activeStatuses.some((s) => grouped[s].length > 0);
+
+  const glassHeaderColors: Record<string, string> = {
+      red: 'text-red-200',
+      emerald: 'text-emerald-500',
+      amber: 'text-amber-200',
+      slate: 'text-slate-500',
+      blue: 'text-blue-600',
+    };
+
+
+    const glassHeader = (color: string) => `
+      text-lg font-bold mb-4 
+      inline-flex items-center justify-center gap-2
+      p-2 px-4
+      rounded-[14px]
+      backdrop-blur-md
+      bg-gradient-to-br from-white/20 via-white/[0.08] to-white/[0.03]
+      shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
+      active:scale-95
+      ${glassHeaderColors[color] || ''}
+    `;
+
+
+
+  const activeStatuses: OrderStatus[] = [ 'PREPARING', 'QUEUED'];
+  // const hasActiveOrders = activeStatuses.some((s) => grouped[s].length > 0);
+
+  const nonEmptyActiveStatuses = activeStatuses.filter((s) => grouped[s].length > 0);
+  const hasActiveOrders = nonEmptyActiveStatuses.length > 0;
 
   return (
     <div className="space-y-8">
       {hasActiveOrders ? (
-        activeStatuses.map((status) => {
+        nonEmptyActiveStatuses.map((status) => {
           const items = grouped[status];
-          if (items.length === 0) return null;
-          
+          // if (items.length === 0) return null;
           const config = statusConfig[status];
           
           return (

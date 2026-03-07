@@ -14,4 +14,12 @@ export default defineConfig({
       "@": path.resolve("./src"),
     },
   },
+  server: {
+    allowedHosts: [
+      // allow your ngrok domain
+      'factorable-expiratory-abbigail.ngrok-free.dev',
+      // or allow all ngrok domains if you don’t want to update every time
+      '*.ngrok-free.dev'
+    ]
+  }
 })

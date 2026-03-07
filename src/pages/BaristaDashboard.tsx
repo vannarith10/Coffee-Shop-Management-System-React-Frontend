@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+//src/pages/BaristaDashboard.tsx
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, RefreshCw } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { logout } from '../services/authService';
@@ -10,8 +11,10 @@ import { EmptyState } from '../components/barista/EmptyState';
 import { LoadingState } from '../components/barista/LoadingState';
 import { ErrorState } from '../components/barista/ErrorState';
 import { OrderGrid } from '../components/barista/OrderGrid';
+import {playSound} from '../utils/sound';
 
 type TabKey = 'all' | 'preparing' | 'done';
+
 
 const getLastUpdatedText = (lastUpdated: Date): string => {
   const seconds = Math.floor((new Date().getTime() - lastUpdated.getTime()) / 1000);
@@ -19,6 +22,7 @@ const getLastUpdatedText = (lastUpdated: Date): string => {
   if (seconds < 120) return '1m ago';
   return `${Math.floor(seconds / 60)}m ago`;
 };
+
 
 const filterOrders = (orders: Order[], activeTab: TabKey): Order[] => {
   switch (activeTab) {
@@ -33,24 +37,30 @@ const filterOrders = (orders: Order[], activeTab: TabKey): Order[] => {
   }
 };
 
+
 export default function BaristaScreen() {
   const { 
-    orders, 
+    orders: apiOrders, 
     loading, 
     error, 
     isSessionExpired, 
     lastUpdated, 
-    loadOrders 
+    loadOrders, 
+    updateOrders
   } = useOrders();
+
   
   const [activeTab, setActiveTab] = useState<TabKey>('all');
   const [currentTime, setCurrentTime] = useState<string>('09:42 AM');
-  const [localOrders, setLocalOrders] = useState<Order[]>([]);
+  const [displayOrders, setDisplayOrders] = useState<Order[]>([]);
+  const prevOrdersLength = useRef<number>(0);
 
+  
   // Sync local orders with fetched orders
   useEffect(() => {
-    setLocalOrders(orders);
-  }, [orders]);
+    setDisplayOrders(apiOrders);
+  }, [apiOrders]);
+
 
   // Clock update
   useEffect(() => {
@@ -61,9 +71,32 @@ export default function BaristaScreen() {
     return () => clearInterval(timer);
   }, []);
 
+
+  // New Order detection - play sound only when orders increase
+  useEffect(() => {
+    if (displayOrders.length === 0) {
+      prevOrdersLength.current = 0;
+      return;
+    }
+
+      // Only play sound if Orders increase (New Order added via WebSocket)
+    if (displayOrders.length > prevOrdersLength.current) {
+      const latest = displayOrders[displayOrders.length - 1];
+      if (latest.status !== "DONE") {
+        playSound("new-order");
+      }
+    }
+
+    prevOrdersLength.current = displayOrders.length;
+  }, [displayOrders]);
+
+
+
   const handleLoginRedirect = useCallback(() => {
     logout();
   }, []);
+
+
 
   const handleRetry = useCallback(() => {
     if (isSessionExpired) {
@@ -73,16 +106,22 @@ export default function BaristaScreen() {
     }
   }, [isSessionExpired, handleLoginRedirect, loadOrders]);
 
-  // NEW: Handle orders update from OrderGrid (optimistic updates)
+
+  // Handle optimistic updates from OrderGrid
   const handleOrdersUpdate = useCallback((updater: (prev: Order[]) => Order[]) => {
-    setLocalOrders(prev => updater(prev));
+    setDisplayOrders(prev => updater(prev));
   }, []);
 
-  const filteredOrders = filterOrders(localOrders, activeTab);
-  const activeCount = localOrders.filter(o => o.status !== 'DONE').length;
-  const completedToday = localOrders.filter(o => o.status === 'DONE').length;
+
+
+  const filteredOrders = filterOrders(displayOrders, activeTab);
+  const activeCount = displayOrders.filter(o => o.status !== 'DONE').length;
+  const completedToday = displayOrders.filter(o => o.status === 'DONE').length;
+
+
 
   if (loading) return <LoadingState />;
+
   
   if (error) return (
     <ErrorState 
@@ -92,6 +131,8 @@ export default function BaristaScreen() {
       onLoginRedirect={handleLoginRedirect} 
     />
   );
+
+
 
   return (
     <div className="min-h-screen bg-[#f6f8f6] dark:bg-[#0a0a0a] text-slate-900 dark:text-slate-100 font-sans selection:bg-emerald-500/30">

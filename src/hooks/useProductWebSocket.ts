@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
+
 import { Product, ProductUpdateEvent } from "../types";
 import { applyProductPatch } from "../utils/productUtils";
 import { useProductSounds } from "./useProductSound";

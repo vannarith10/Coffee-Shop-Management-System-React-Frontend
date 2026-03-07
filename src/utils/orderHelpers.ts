@@ -1,3 +1,4 @@
+//utils/orderHelpers.ts
 import { APIOrder, Order, OrderStatus } from '../types/order';
 
 export const calculateElapsedTime = (createdAt: string): string => {
@@ -18,11 +19,9 @@ export const calculateElapsedTime = (createdAt: string): string => {
 export const mapStatus = (apiStatus: string): OrderStatus => {
   const statusMap: Record<string, OrderStatus> = {
     'DONE': 'DONE',
-    'PENDING': 'PENDING',
     'PREPARING': 'PREPARING',
     'QUEUED': 'QUEUED',
     'QUEUEING': 'QUEUED',
-    'LATE': 'LATE',
   };
   return statusMap[apiStatus] || 'QUEUED';
 };
@@ -47,22 +46,18 @@ export const getFallbackImage = (itemName: string): string => {
 };
 
 export const transformOrder = (apiOrder: APIOrder): Order => {
-  const totalItems = apiOrder.items.reduce((sum, item) => sum + item.quantity, 0);
   
   return {
     id: apiOrder.order_id,
     orderNumber: apiOrder.order_number,
     status: mapStatus(apiOrder.status),
-    elapsedTime: calculateElapsedTime(apiOrder.create_at),
     notes: apiOrder.note || 'No notes provided for this order.',
     createdAt: apiOrder.create_at,
-    itemCount: totalItems,
     items: apiOrder.items.map((item, index) => ({
-      id: `${apiOrder.order_id}-${index}`,
+      id: `item-${index}-${item.name}`,
       name: item.name,
-      quantity: item.quantity,
-      image: item.image_url,
-      isCompleted: apiOrder.status === 'DONE',
+      imageUrl: item.image_url,
+      quantity: item.quantity
     })),
   };
 };

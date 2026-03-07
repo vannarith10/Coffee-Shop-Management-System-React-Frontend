@@ -9,14 +9,14 @@ interface OrderItemRowProps {
 }
 
 export const OrderItemRow: React.FC<OrderItemRowProps> = ({ item, orderStatus }) => {
-  const isCompleted = item.isCompleted || orderStatus === 'DONE';
+  const isCompleted = orderStatus === 'DONE';
   
   return (
     <div className={`flex items-center gap-3 p-2 rounded-xl transition-all ${
       isCompleted ? 'opacity-50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
     }`}>
       <ProductImage 
-        src={item.image} 
+        src={item.imageUrl} 
         alt={item.name}
         isCompleted={isCompleted}
         orderStatus={orderStatus}

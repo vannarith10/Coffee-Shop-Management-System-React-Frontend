@@ -23,17 +23,19 @@ export function toBackendError(err: unknown): BackendError {
   };
 }
 
+
 export type Product = {
   id: string;
   name: string;
-  description?: string;
   price: number;
   image_url?: string | null;
-  in_stock: boolean | null;
+  description?: string;
   category_type: string; // DRINK and FOOD
   category_name?: string; // TEA, COFFEE, NOODLE
+  in_stock: boolean | null;
   // If we don't use NULL it means it is required
 };
+
 
 export type ProductUpdateEvent = {
   event: "product.price.updated" | "product.updated" | "product.added" | "product.image.updated";
@@ -46,7 +48,9 @@ export type ProductUpdateEvent = {
   };
 };
 
+
 export type UserRole = "ADMIN" | "CASHIER" | "BARISTA";
+
 
 export interface User {
   id: string;
