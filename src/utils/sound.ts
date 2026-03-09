@@ -1,7 +1,151 @@
 
-const audioContext = typeof window !== 'undefined' 
-  ? new (window.AudioContext || (window as any).webkitAudioContext)() 
-  : null;
+let audioContext: AudioContext | null = null;
+let isAudioUnlocked = false;
+
+const getAudioContext = (): AudioContext => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)
+    ();
+  }
+  return audioContext;
+}
+
+export const unlockAudio = () : void => {
+  if (isAudioUnlocked) return;
+
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') {
+    ctx.resume().then(() => {
+      console.log("Audio Unlocked!");
+      isAudioUnlocked = true;
+    });
+  } else {
+    isAudioUnlocked = true;
+  }
+};
+
+
+export const setupAudioUnlock = (): void => {
+  const events = ['click', 'touchstart', 'keydown'];
+  
+  const unlock = () => {
+    unlockAudio();
+    // Remove listeners after first interaction
+    events.forEach(e => document.removeEventListener(e, unlock));
+  };
+  
+  events.forEach(e => document.addEventListener(e, unlock, { once: true }));
+};
+
+
+// Helper to create oscillator with delay and duration
+const createOscillator = (
+  ctx: AudioContext,
+  frequency: number,
+  delaySeconds: number,
+  durationSeconds: number,
+  gainValue: number = 0.3
+): void => {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  
+  osc.frequency.value = frequency;
+  gain.gain.setValueAtTime(gainValue, ctx.currentTime + delaySeconds);
+  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delaySeconds + durationSeconds);
+  
+  osc.start(ctx.currentTime + delaySeconds);
+  osc.stop(ctx.currentTime + delaySeconds + durationSeconds);
+};
+
+
+// Play sound with unlock check
+export const playSound = (type: 'new-order' | 'start' | 'complete' | 'notification' | 'price-change' | 'restock' | 'alert'): void => {
+  const ctx = getAudioContext();
+  
+  // Try to resume if suspended (may fail if no user gesture yet)
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {
+      console.warn('Audio blocked: waiting for user interaction');
+      return; // Silently fail, will work after user clicks
+    });
+  }
+  
+  // Create oscillator for different sounds
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  
+  // Configure sound based on type
+  switch (type) {
+    case 'new-order':      
+      createOscillator(ctx, 440, 0, 0.5);      // A4, starts immediately, 0.5s
+      createOscillator(ctx, 554.37, 0.15, 0.5); // C#5, starts at 0.15s, 0.5s
+      createOscillator(ctx, 659.25, 0.3, 0.6);   // E5, starts at 0.3s, 0.6s
+      break;
+      
+    case 'start':
+      oscillator.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.3);
+      break;
+      
+    case 'complete':
+      // Happy major chord arpeggio
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.05 + 0.4);
+        osc.start(ctx.currentTime + i * 0.05);
+        osc.stop(ctx.currentTime + i * 0.05 + 0.4);
+      });
+      break;
+
+      case 'price-change':
+        // Soft UI confirmation sound
+        createOscillator(ctx, 880, 0, 0.12, 0.2); // A5
+        createOscillator(ctx, 1046.5, 0.08, 0.12, 0.2); // C6
+        break;
+
+      case 'restock':
+        // Positive success tone (ascending)
+        createOscillator(ctx, 392.0, 0, 0.2, 0.25);   // G4
+        createOscillator(ctx, 523.25, 0.12, 0.25, 0.25); // C5
+        createOscillator(ctx, 659.25, 0.24, 0.35, 0.25); // E5
+        break;
+
+      case 'alert':
+        // Warning alert sound (two sharp beeps)
+        createOscillator(ctx, 880, 0, 0.25, 0.35);
+        createOscillator(ctx, 880, 0.35, 0.25, 0.35);
+        break;
+
+      
+    default:
+      oscillator.frequency.setValueAtTime(440, ctx.currentTime);
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.2);
+  }
+};
+
+
+
+/*
+// const audioContext = typeof window !== 'undefined' 
+//   ? new (window.AudioContext || (window as any).webkitAudioContext)() 
+//   : null;
 
 export const playSound = (type: 'start' | 'complete' | 'new-order' | 'notification' | 'price-change' | 'restock' | 'alert') => {
   if (!audioContext) return;
@@ -70,91 +214,5 @@ export const playSound = (type: 'start' | 'complete' | 'new-order' | 'notificati
       break;
   }
 };
+*/
 
-
-// const audioContext = typeof window !== 'undefined' ? new (window.AudioContext || (window as any).webkitAudioContext)() : null;
-
-// export const playSound = (type: 'start' | 'complete' | 'new-order' | 'notification' | 'price-change' | 'restock' | 'alert') => {
-//   if (!audioContext) return;
-
-//   const oscillator = audioContext.createOscillator();
-//   const gainNode = audioContext.createGain();
-
-//   oscillator.connect(gainNode);
-//   gainNode.connect(audioContext.destination);
-
-//   if (type === 'start') {
-//     // Higher pitch pop for "Start Preparing"
-//     oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-//     oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-//     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-//     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-//     oscillator.start(audioContext.currentTime);
-//     oscillator.stop(audioContext.currentTime + 0.1);
-//   } else if (type === 'complete') {
-//     // Success chime for "Done" - two tones
-//     const osc1 = audioContext.createOscillator();
-//     const gain1 = audioContext.createGain();
-//     osc1.connect(gain1);
-//     gain1.connect(audioContext.destination);
-    
-//     osc1.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-//     gain1.gain.setValueAtTime(0.3, audioContext.currentTime);
-//     gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-//     osc1.start(audioContext.currentTime);
-//     osc1.stop(audioContext.currentTime + 0.3);
-
-//     const osc2 = audioContext.createOscillator();
-//     const gain2 = audioContext.createGain();
-//     osc2.connect(gain2);
-//     gain2.connect(audioContext.destination);
-    
-//     osc2.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
-//     gain2.gain.setValueAtTime(0.3, audioContext.currentTime + 0.1);
-//     gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-//     osc2.start(audioContext.currentTime + 0.1);
-//     osc2.stop(audioContext.currentTime + 0.4);
-//   } else if (type === 'new-order') {
-//     // 🔔 Doorbell/Ding sound for new order - three ascending tones
-//     const now = audioContext.currentTime;
-    
-//     // First ding (lower)
-//     const osc1 = audioContext.createOscillator();
-//     const gain1 = audioContext.createGain();
-//     osc1.connect(gain1);
-//     gain1.connect(audioContext.destination);
-//     osc1.type = 'sine';
-//     osc1.frequency.setValueAtTime(440, now); // A4
-//     gain1.gain.setValueAtTime(0, now);
-//     gain1.gain.linearRampToValueAtTime(0.4, now + 0.05);
-//     gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-//     osc1.start(now);
-//     osc1.stop(now + 0.5);
-
-//     // Second ding (higher, slightly delayed)
-//     const osc2 = audioContext.createOscillator();
-//     const gain2 = audioContext.createGain();
-//     osc2.connect(gain2);
-//     gain2.connect(audioContext.destination);
-//     osc2.type = 'sine';
-//     osc2.frequency.setValueAtTime(554.37, now + 0.15); // C#5
-//     gain2.gain.setValueAtTime(0, now + 0.15);
-//     gain2.gain.linearRampToValueAtTime(0.4, now + 0.2);
-//     gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
-//     osc2.start(now + 0.15);
-//     osc2.stop(now + 0.7);
-
-//     // Third ding (highest)
-//     const osc3 = audioContext.createOscillator();
-//     const gain3 = audioContext.createGain();
-//     osc3.connect(gain3);
-//     gain3.connect(audioContext.destination);
-//     osc3.type = 'sine';
-//     osc3.frequency.setValueAtTime(659.25, now + 0.3); // E5
-//     gain3.gain.setValueAtTime(0, now + 0.3);
-//     gain3.gain.linearRampToValueAtTime(0.4, now + 0.35);
-//     gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
-//     osc3.start(now + 0.3);
-//     osc3.stop(now + 0.9);
-//   }
-// };

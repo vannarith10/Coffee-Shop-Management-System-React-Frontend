@@ -1,3 +1,4 @@
+//src/pages/CashierPOS.tsx
 import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout, getUser } from "../services/authService";
@@ -11,7 +12,6 @@ import { ProductGrid } from "../components/pos/ProductGrid";
 import { CartSidebar } from "../components/pos/CartSidebar";
 import { NameFilter } from "../components/pos/NameFilter";
 import { TypeFilter } from "../components/pos/TypeFilter";
-
 import {RefreshLoadingScreen} from "../components/LoadingScreen"
 
 
@@ -22,7 +22,6 @@ export default function CashierPOS() {
 
 
   const [searchTerm, setSearchTerm] = useState("");
-  // const [categoryFilter, setCategoryFilter] = useState<FilterType>("ALL");
   const [typeFilter, setTypeFilter] = useState<"ALL" | "DRINK" | "FOOD">("ALL");
   const [nameFilter, setNameFilter] = useState<string>("ALL");
 
@@ -102,6 +101,7 @@ export default function CashierPOS() {
             username={user?.username || "Cashier"}
             onLogout={handleLogout}
           />
+
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
           <TypeFilter
@@ -120,7 +120,6 @@ export default function CashierPOS() {
         </header>
 
         {/* Products Grid */}
-        
         <main className="flex-1 p-6 overflow-y-auto bg-cover bg-center bg-no-repeat [&::-webkit-scrollbar]:hidden" 
               style={{ backgroundImage: 'url(https://wallpapercave.com/wp/wp8965797.jpg)' }}>
           {filteredProducts.length === 0 ? (
@@ -135,9 +134,7 @@ export default function CashierPOS() {
               onAddToCart={addToCart}
             />
           )}
-        </main>
-
-        
+        </main>        
       </div>
 
       {/* Cart Sidebar */}

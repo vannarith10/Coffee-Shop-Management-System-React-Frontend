@@ -9,16 +9,18 @@ interface HeaderProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
   activeCount: number;
+  handleLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   currentTime, 
   activeTab, 
   onTabChange, 
-  activeCount 
+  activeCount ,
+  handleLogout
 }) => (
   <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-[#f6f8f6]/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md px-6 py-4">
-    <div className="max-w-[1440px] mx-auto flex items-center justify-between">
+    <div className="mx-auto flex items-center justify-between">
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-emerald-500 rounded-lg text-black">
@@ -36,11 +38,11 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-4">
         <FilterTabs activeTab={activeTab} onTabChange={onTabChange} />
 
-        <div className="flex items-center gap-3">
-          <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+        <div className="flex items-center gap-3 h-10">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 h-full w-24 rounded-sm flex items-center justify-center">
             <span className="text-emerald-500 text-sm font-bold tracking-wide">{activeCount} ACTIVE</span>
           </div>
+          <button onClick={handleLogout} className='bg-red-600 text-white font-bold rounded-sm h-full w-24 cursor-pointer hover:bg-red-800 transition-all duration-150'>Logout</button>
         </div>
       </div>
     </div>

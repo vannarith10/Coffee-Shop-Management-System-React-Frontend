@@ -4,7 +4,7 @@ import { Search, RefreshCw } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { logout } from '../services/authService';
 import { useOrders } from '../hooks/useOrders';
-import { Order, OrderStatus } from '../types/order';
+import { Order } from '../types/order';
 import { Header } from '../components/barista/Header';
 import { StatItem } from '../components/barista/StatItem';
 import { EmptyState } from '../components/barista/EmptyState';
@@ -12,6 +12,7 @@ import { LoadingState } from '../components/barista/LoadingState';
 import { ErrorState } from '../components/barista/ErrorState';
 import { OrderGrid } from '../components/barista/OrderGrid';
 import {playSound} from '../utils/sound';
+import { useNavigate } from 'react-router-dom';
 
 type TabKey = 'all' | 'preparing' | 'done';
 
@@ -39,6 +40,7 @@ const filterOrders = (orders: Order[], activeTab: TabKey): Order[] => {
 
 
 export default function BaristaScreen() {
+
   const { 
     orders: apiOrders, 
     loading, 
@@ -54,6 +56,7 @@ export default function BaristaScreen() {
   const [currentTime, setCurrentTime] = useState<string>('09:42 AM');
   const [displayOrders, setDisplayOrders] = useState<Order[]>([]);
   const prevOrdersLength = useRef<number>(0);
+  const navigate = useNavigate();
 
   
   // Sync local orders with fetched orders
@@ -62,15 +65,6 @@ export default function BaristaScreen() {
   }, [apiOrders]);
 
 
-  // Clock update
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
 
   // New Order detection - play sound only when orders increase
   useEffect(() => {
@@ -78,7 +72,6 @@ export default function BaristaScreen() {
       prevOrdersLength.current = 0;
       return;
     }
-
       // Only play sound if Orders increase (New Order added via WebSocket)
     if (displayOrders.length > prevOrdersLength.current) {
       const latest = displayOrders[displayOrders.length - 1];
@@ -86,7 +79,6 @@ export default function BaristaScreen() {
         playSound("new-order");
       }
     }
-
     prevOrdersLength.current = displayOrders.length;
   }, [displayOrders]);
 
@@ -98,6 +90,13 @@ export default function BaristaScreen() {
 
 
 
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate("/login");
+  }, [navigate]);
+
+
+
   const handleRetry = useCallback(() => {
     if (isSessionExpired) {
       handleLoginRedirect();
@@ -105,6 +104,7 @@ export default function BaristaScreen() {
       loadOrders();
     }
   }, [isSessionExpired, handleLoginRedirect, loadOrders]);
+
 
 
   // Handle optimistic updates from OrderGrid
@@ -135,61 +135,67 @@ export default function BaristaScreen() {
 
 
   return (
-    <div className="min-h-screen bg-[#f6f8f6] dark:bg-[#0a0a0a] text-slate-900 dark:text-slate-100 font-sans selection:bg-emerald-500/30">
-      <Toaster position="top-right" richColors />
-      
-      <Header 
-        currentTime={currentTime}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        activeCount={activeCount}
-      />
+    <div className="min-h-screen bg-[#f6f8f6] dark:bg-[#0a0a0a] text-slate-900 dark:text-slate-100 font-sans selection:bg-emerald-500/30 flex flex-col">
+  <Toaster position="top-center" richColors />
+  
+  {/* Header */}
+  <Header 
+    currentTime={currentTime}
+    activeTab={activeTab}
+    onTabChange={setActiveTab}
+    activeCount={activeCount}
+    handleLogout={handleLogout}
+  />
 
-      <main className="max-w-[1440px] mx-auto p-6">
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold">Preparation Queue</h2>
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
-              <span>Updated {getLastUpdatedText(lastUpdated)}</span>
-              <button 
-                onClick={() => loadOrders(false)}
-                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
-                title="Refresh now"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-            <input 
-              type="text" 
-              placeholder="Search orders or items..." 
-              className="w-full bg-slate-100 dark:bg-slate-900 border-none rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500/50 transition-all outline-none placeholder:text-slate-500"
-            />
-          </div>
+  {/* Main Content */}
+  <main className="flex-1 w-full mx-auto p-6">
+    
+    {/* Page Header */}
+    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+      <div className="flex items-center gap-4">
+        <h2 className="text-2xl font-bold">Preparation Queue</h2>
+        <div className="flex items-center gap-2 text-slate-500 text-sm">
+          <span>Updated {getLastUpdatedText(lastUpdated)}</span>
+          <button 
+            onClick={() => loadOrders(false)}
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
+            title="Refresh now"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
         </div>
-
-        {/* Order Grid */}
-        {filteredOrders.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <OrderGrid 
-            orders={filteredOrders} 
-            onOrdersUpdate={handleOrdersUpdate}
-          />
-        )}
-
-        <footer className="mt-12 p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-8 items-center justify-around shadow-sm">
-          <StatItem label="Avg Prep Time" value="2m 45s" />
-          <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
-          <StatItem label="Completed Today" value={completedToday.toString()} />
-          <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
-          <StatItem label="Efficiency" value="94%" highlight />
-        </footer>
-
-      </main>
+      </div>
+      <div className="relative w-full md:w-80">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+        <input 
+          type="text" 
+          placeholder="Search orders or items..." 
+          className="w-full bg-slate-100 dark:bg-slate-900 border-none rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500/50 transition-all outline-none placeholder:text-slate-500"
+        />
+      </div>
     </div>
+
+    {/* Order Grid */}
+    {filteredOrders.length === 0 ? (
+      <EmptyState />
+    ) : (
+      <OrderGrid 
+        orders={filteredOrders} 
+        onOrdersUpdate={handleOrdersUpdate}
+      />
+    )}
+  </main>
+
+  {/* Footer */}
+  <footer className="max-w-360 w-full mx-auto p-6">
+    <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-8 items-center justify-around shadow-sm">
+      <StatItem label="Avg Prep Time" value="2m 45s" />
+      <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+      <StatItem label="Completed Today" value={completedToday.toString()} />
+      <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+      <StatItem label="Efficiency" value="82%" highlight />
+    </div>
+  </footer>
+</div>
   );
 }

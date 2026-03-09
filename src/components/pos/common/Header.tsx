@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
       </div>
       <button
         onClick={onLogout}
-        className="text-red-600 hover:text-red-700 font-medium text-sm"
+        className="text-white bg-red-600 font-medium text-sm p-2 rounded-lg cursor-pointer hover:pl-4 hover:pr-4 transition-all ease-in-out duration-200"
       >
         Logout
       </button>

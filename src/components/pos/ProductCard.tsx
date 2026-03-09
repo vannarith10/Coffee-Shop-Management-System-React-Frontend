@@ -1,3 +1,5 @@
+
+//src/components/pos/ProductCard.tsx
 import React from "react";
 import { ProductCardProps } from "../../types/pos";
 
@@ -60,6 +62,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </span>
       </div>
 
+
       <div className="flex-1 flex flex-col justify-between min-h-0">
         <div>
           <h3 className="font-semibold text-[#EBBF58] text-md line-clamp-2 leading-tight mb-1">
@@ -73,6 +76,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           ${product.price.toFixed(2)}
         </p>
       </div>
+
+
     </button>
   );
+
+
 };
