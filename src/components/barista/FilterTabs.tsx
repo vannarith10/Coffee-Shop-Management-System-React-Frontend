@@ -1,3 +1,4 @@
+//src/components/barista/FilterTabs.tsx
 import React from 'react';
 
 type TabKey = 'all' | 'preparing' | 'done';
@@ -22,7 +23,7 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({ activeTab, onTabChange }
         <button 
           key={tab.key}
           onClick={() => onTabChange(tab.key)}
-          className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+          className={`px-4 cursor-pointer py-1.5 rounded-md text-sm font-bold transition-all ${
             isActive 
               ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' 
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'

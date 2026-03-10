@@ -19,31 +19,30 @@ const groupByStatus = (orders: Order[]) => {
     PREPARING: [],
     DONE: [],
   };
-
   orders.forEach((order) => {
     groups[order.status].push(order);
   });
-
   return groups;
 };
 
-// Sort orders by createdAt (older first)
+
+// Sort orders by createdAt (older first) - for acitive orders
 const sortByDateAsc = (a: Order, b: Order) => {
   return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 };
 
-// Helper to determine previous status for revert
-const getPreviousStatus = (currentStatus: OrderStatus, attemptedStatus: 'PREPARING' | 'DONE'): OrderStatus => {
-  if (attemptedStatus === 'DONE') return 'PREPARING';
-  return 'QUEUED';
-};
+// Sort by newest first - for completed orders
+const sortByDateDesc = (a: Order, b: Order) => {
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
 
 export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) => {
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   const handleUpdateStatus = useCallback(async (orderId: string, newStatus: OrderStatusUpdate) => {
-    // ... keep existing logic exactly the same ...
-    if (updatingOrderId) return;
+    // Prevent double-clicks
+    if (updatingOrderId === orderId) return;
 
     const currentOrder = orders.find(o => o.id === orderId);
     if (!currentOrder) {
@@ -51,29 +50,33 @@ export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) 
       return;
     }
     
-    const currentStatus = currentOrder?.status ?? 'QUEUED';
     const orderNum = currentOrder?.orderNumber;
-    
+
+    // Set loading state BEFORE the API call
     setUpdatingOrderId(orderId);
 
-    onOrdersUpdate((prev) => {
-      const order = prev.find(o => o.id === orderId);
-      if (!order) return prev;
-
-      return prev.map((o) => {
-        if (o.id !== orderId) return o;
-
-        return {
-          ...o,
-          status: newStatus as OrderStatus,
-          items: newStatus === 'DONE' ? o.items.map((i) => ({...i, isCompleted: true})) : o.items,
-        };
-      });
-    });
-
     try {
+      // Call API first - wait for success response
       const response = await updateOrderStatus(orderId, newStatus);
-      
+
+      // ONLY update UI after successful Backend response
+      onOrdersUpdate((prev) => {
+        const order = prev.find(o => o.id === orderId);
+
+        if (!order) return prev;
+
+        return prev.map((o) => {
+          if (o.id !== orderId) return o;
+          
+          return {
+            ...o,
+            status: newStatus as OrderStatus,
+            items: newStatus === 'DONE' ? o.items.map((i) => ({...i, isComleted: true})) : o.items,
+          };
+        });
+      });
+
+      // Success feedback
       if (newStatus === 'PREPARING') {
         playSound('start');
         toast.success(`Order #${orderNum} started PREPARING!`);
@@ -81,40 +84,41 @@ export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) 
         playSound('complete');
         toast.success(`Order #${orderNum} DONE! 🎉`);
       }
-      
-      console.log('Status updated:', response);
-    } catch (error) {
-      const revertedStatus = getPreviousStatus(currentStatus, newStatus);
-      
-      onOrdersUpdate((prev) => prev.map((order) => {
-        if (order.id !== orderId) return order;
-        
-        return {
-          ...order,
-          status: revertedStatus,
-          items: revertedStatus === 'DONE' 
-            ? order.items.map((i) => ({ ...i, isCompleted: true }))
-            : order.items.map((i) => ({ ...i, isCompleted: false })),
-        };
-      }));
 
-      const message = error instanceof Error ? error.message : 'Failed to update';
+      console.log('Status updated: ', response);
+
+    } catch (error) {
+      // On error: UI stays at current status (no optimistic update to revert)
+      const message = error instanceof Error ? error.message : 'Failed to update status';
       toast.error(message);
-      console.error('Failed to update status:', error);
-      throw error;
+      console.error('Failed to update status: ', error);
+
     } finally {
+      // Always clear loading state
       setUpdatingOrderId(null);
     }
+
   }, [orders, onOrdersUpdate, updatingOrderId]);
 
-  const sortedOrders = [...orders].sort(sortByDateAsc);
+
+
+  // Sort active orders by oldest first (FIFO)
+  const sortedActiveOrders = [...orders].filter(o => o.status !== 'DONE').sort(sortByDateAsc);
+
+  // Sort DONE orders by newest first (LIFO)
+  const sortedDoneOrders = [...orders].filter(o => o.status === 'DONE').sort(sortByDateDesc);
+
+  // Combine for grouping
+  const sortedOrders = [...sortedActiveOrders , ...sortedDoneOrders];
   const grouped = groupByStatus(sortedOrders);
+
 
   const statusConfig: Record<OrderStatus, { label: string; color: string; emoji: string }> = {
     PREPARING: { label: 'Preparing', color: 'emerald', emoji: '⚡' },
     QUEUED: { label: 'Queued', color: 'slate', emoji: '📋' },
     DONE: { label: 'Completed', color: 'blue', emoji: '✅' },
   };
+
 
   const glassHeaderColors: Record<string, string> = {
     red: 'text-red-200',
@@ -123,6 +127,7 @@ export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) 
     slate: 'text-slate-500',
     blue: 'text-blue-600',
   };
+
 
   const glassHeader = (color: string) => `
     text-lg font-bold mb-4 
@@ -141,31 +146,16 @@ export const OrderGrid: React.FC<OrderGridProps> = ({ orders, onOrdersUpdate }) 
   const hasActiveOrders = nonEmptyActiveStatuses.length > 0;
 
 
-  // Masonry Layout using CSS Columns
-  const masonryGrid = `
-    columns-1 
-    sm:columns-2 
-    lg:columns-3 
-    xl:columns-4 
-    2xl:columns-5 
-    3xl:columns-6 
-    gap-6
-    space-y-6
-  `;
-
   // Responsive column breakpoints
-const breakpointColumns = {
-  default: 6,
-  1920: 5,  // 3xl
-  1536: 4,  // 2xl  
-  1280: 3,  // xl
-  1024: 3,  // lg
-  768: 2,   // md
-  640: 1,   // sm
-};
-
-  // Prevent card from breaking across columns
-  const masonryItem = "break-inside-avoid mb-6";
+  const breakpointColumns = {
+    default: 6,
+    1920: 5,  // 3xl
+    1536: 4,  // 2xl  
+    1280: 3,  // xl
+    1024: 3,  // lg
+    768: 2,   // md
+    640: 1,   // sm
+  };
 
 
   return (
@@ -175,12 +165,16 @@ const breakpointColumns = {
           const items = grouped[status];
           const config = statusConfig[status];
           
+
           return (
+
             <section key={status} className="w-full">
+
               <h2 className={glassHeader(config.color)}>
                 <span>{config.emoji}</span>
                 <span>{config.label} ({items.length})</span>
               </h2>
+
               
               {/* Masonry Layout - Left to Right flow */}
               <Masonry
@@ -198,21 +192,28 @@ const breakpointColumns = {
                   </div>
                 ))}
               </Masonry>
+
             </section>
+
+
           );
         })
       ) : (
         <div className="text-center py-20 text-slate-500">
-          <p className="text-xl">No active orders</p>
+          <p className="text-2xl font-bold">No active orders</p>
         </div>
       )}
 
+
       {grouped.DONE.length > 0 && (
+
         <section className="opacity-60 hover:opacity-100 transition-opacity w-full">
           <h2 className={glassHeader('blue')}>
             <span>{statusConfig.DONE.emoji}</span>
             <span>{statusConfig.DONE.label} ({grouped.DONE.length})</span>
           </h2>
+
+
           <Masonry
             breakpointCols={breakpointColumns}
             className="flex w-auto -ml-6"
@@ -229,125 +230,10 @@ const breakpointColumns = {
             ))}
           </Masonry>
         </section>
+
+
       )}
     </div>
   );
 
-
-
-
-  // return (
-  //   <div className="space-y-8 w-full">
-  //     {hasActiveOrders ? (
-  //       nonEmptyActiveStatuses.map((status) => {
-  //         const items = grouped[status];
-  //         const config = statusConfig[status];
-          
-  //         return (
-  //           <section key={status} className="w-full">
-  //             <h2 className={glassHeader(config.color)}>
-  //               <span>{config.emoji}</span>
-  //               <span>{config.label} ({items.length})</span>
-  //             </h2>
-              
-  //             {/* Masonry Layout - CSS Columns */}
-  //             <div className={masonryGrid}>
-  //               {items.map((order) => (
-  //                 <div key={order.id} className={masonryItem}>
-  //                   <OrderCard
-  //                     order={order}
-  //                     onUpdateStatus={handleUpdateStatus}
-  //                     isUpdating={updatingOrderId === order.id}
-  //                   />
-  //                 </div>
-  //               ))}
-  //             </div>
-  //           </section>
-  //         );
-  //       })
-  //     ) : (
-  //       <div className="text-center py-20 text-slate-500">
-  //         <p className="text-xl">No active orders</p>
-  //       </div>
-  //     )}
-
-  //     {grouped.DONE.length > 0 && (
-  //       <section className="opacity-60 hover:opacity-100 transition-opacity w-full">
-  //         <h2 className={glassHeader('blue')}>
-  //           <span>{statusConfig.DONE.emoji}</span>
-  //           <span>{statusConfig.DONE.label} ({grouped.DONE.length})</span>
-  //         </h2>
-  //         <div className={masonryGrid}>
-  //           {grouped.DONE.map((order) => (
-  //             <div key={order.id} className={masonryItem}>
-  //               <OrderCard
-  //                 order={order}
-  //                 onUpdateStatus={handleUpdateStatus}
-  //                 isUpdating={updatingOrderId === order.id}
-  //               />
-  //             </div>
-  //           ))}
-  //         </div>
-  //       </section>
-  //     )}
-  //   </div>
-  // );
-
-
-
-
-  // return (
-  //   <div className="space-y-8 w-full">
-  //     {hasActiveOrders ? (
-  //       nonEmptyActiveStatuses.map((status) => {
-  //         const items = grouped[status];
-  //         const config = statusConfig[status];
-          
-  //         return (
-  //           <section key={status} className="w-full">
-  //             <h2 className={glassHeader(config.color)}>
-  //               <span>{config.emoji}</span>
-  //               <span>{config.label} ({items.length})</span>
-  //             </h2>
-              
-  //             {/* Responsive Grid - Same pattern as ProductGrid */}
-  //             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6">
-  //               {items.map((order) => (
-  //                 <OrderCard
-  //                   key={order.id}
-  //                   order={order}
-  //                   onUpdateStatus={handleUpdateStatus}
-  //                   isUpdating={updatingOrderId === order.id}
-  //                 />
-  //               ))}
-  //             </div>
-  //           </section>
-  //         );
-  //       })
-  //     ) : (
-  //       <div className="text-center py-20 text-slate-500">
-  //         <p className="text-xl">No active orders</p>
-  //       </div>
-  //     )}
-
-  //     {grouped.DONE.length > 0 && (
-  //       <section className="opacity-60 hover:opacity-100 transition-opacity w-full">
-  //         <h2 className={glassHeader('blue')}>
-  //           <span>{statusConfig.DONE.emoji}</span>
-  //           <span>{statusConfig.DONE.label} ({grouped.DONE.length})</span>
-  //         </h2>
-  //         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6">
-  //           {grouped.DONE.map((order) => (
-  //             <OrderCard
-  //               key={order.id}
-  //               order={order}
-  //               onUpdateStatus={handleUpdateStatus}
-  //               isUpdating={updatingOrderId === order.id}
-  //             />
-  //           ))}
-  //         </div>
-  //       </section>
-  //     )}
-  //   </div>
-  // );
 };

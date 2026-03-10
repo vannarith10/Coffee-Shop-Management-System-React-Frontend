@@ -1,3 +1,4 @@
+//src/sevices/orderService.ts
 import { authFetch } from './authService';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
@@ -14,9 +15,7 @@ export interface UpdateOrderStatusRequest {
   status: OrderStatusUpdate;
 }
 
-/**
- * Update order status via API
- */
+
 export async function updateOrderStatus(
   orderId: string, 
   status: OrderStatusUpdate

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+//src/components/barista/OrderCard.tsx
+import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 import { OrderItemRow } from './OrderItemRow';
 import { Order, OrderStatus } from '../../types/order';
 import { OrderStatusUpdate } from '../../services/orderService';
+
 
 interface OrderCardProps {
   order: Order;
@@ -12,7 +14,6 @@ interface OrderCardProps {
 }
 
 // --- Style Templates (Easy to modify!) ---
-
 const cardStyles = (status: OrderStatus, isLoading: boolean) => `
   break-inside-avoid mb-6 shrink-0
   flex flex-col bg-white dark:bg-slate-900 
@@ -50,6 +51,7 @@ const btnStyles = (status: OrderStatus, isLoading: boolean) => `
   }[status]}
 `;
 
+
 const noteStyles = (status: OrderStatus) => ({
   QUEUED: 'text-slate-500',
   PREPARING: 'text-emerald-600',
@@ -69,8 +71,8 @@ const loadingText: Record<Exclude<OrderStatus, 'DONE'>, string> = {
   PREPARING: 'Finishing...',
 };
 
-// --- Helper Functions ---
 
+// --- Helper Functions ---
 const getNextStatus = (current: OrderStatus): 'PREPARING' | 'DONE' | null => {
   if (current === 'QUEUED') return 'PREPARING';
   if (current === 'PREPARING') return 'DONE';
@@ -86,35 +88,30 @@ const formatDateDash = (dateString: string): string => {
   return `${day}-${month}-${year}`;
 };
 
-// --- Component ---
 
+// --- Component ---
 export const OrderCard: React.FC<OrderCardProps> = ({ 
   order, 
   onUpdateStatus,
   isUpdating = false 
 }) => {
-  const [localLoading, setLocalLoading] = useState(false);
-  const isLoading = isUpdating || localLoading;
+
   const isDone = order.status === 'DONE';
 
+
   const handleClick = async () => {
-    if (isDone || isLoading) return;
+    if (isDone || isUpdating) return;
     
     const nextStatus = getNextStatus(order.status);
     if (!nextStatus) return;
 
-    setLocalLoading(true);
-    try {
-      await onUpdateStatus(order.id, nextStatus);
-    } catch (error) {
-      console.error('Failed to update:', error);
-    } finally {
-      setLocalLoading(false);
-    }
+    // Let parent handle Loading state and API call
+    await onUpdateStatus(order.id, nextStatus);
   };
 
+
   return (
-    <div className={cardStyles(order.status, isLoading)}>
+    <div className={cardStyles(order.status, isUpdating)}>
       
       {/* Header */}
       <div className={headerStyles(order.status)}>
@@ -162,10 +159,10 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         <div className="p-4 bg-white dark:bg-slate-800/50">
           <button 
             onClick={handleClick}
-            disabled={isLoading}
-            className={btnStyles(order.status, isLoading)}
+            disabled={isUpdating}
+            className={btnStyles(order.status, isUpdating)}
           >
-            {isLoading ? (
+            {isUpdating ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 {loadingText[order.status as Exclude<OrderStatus, 'DONE'>]}

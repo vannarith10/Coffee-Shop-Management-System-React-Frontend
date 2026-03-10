@@ -154,16 +154,6 @@ export default function BaristaScreen() {
     <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
       <div className="flex items-center gap-4">
         <h2 className="text-2xl font-bold">Preparation Queue</h2>
-        <div className="flex items-center gap-2 text-slate-500 text-sm">
-          <span>Updated {getLastUpdatedText(lastUpdated)}</span>
-          <button 
-            onClick={() => loadOrders(false)}
-            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
-            title="Refresh now"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
       </div>
       <div className="relative w-full md:w-80">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
