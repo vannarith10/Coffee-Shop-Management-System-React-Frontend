@@ -5,17 +5,21 @@ import { Order , OrderUpdateEvent } from "../types/order"
 import {useOrderSounds} from "./useOrderSounds";
 import { transformOrder } from "../utils/orderHelpers";
 import { APIOrder } from "../types/order";
+import { MetricsEventEnvelope, PerformanceMetricsPayload } from "@/types/metrics";
 
 
 const WS_URL = "ws://localhost:8080/ws";
 
 export function useOrderWebSocket (
     accessToken: string | undefined,
-    onOrderUpdate: (updater: (prev: Order[]) => Order[]) => void
+    onOrderUpdate: (updater: (prev: Order[]) => Order[]) => void,
+    onMetricsUpdate?: (payload: PerformanceMetricsPayload) => void
 ) {
     const { showToastForEvent } = useOrderSounds();
 
-    const handleMessage = useCallback((msg : IMessage) => {
+
+
+    const handleOrderMessage = useCallback((msg : IMessage) => {
         const event : OrderUpdateEvent = JSON.parse(msg.body);
         const {event: eventType, payload} = event;
         
@@ -35,29 +39,53 @@ export function useOrderWebSocket (
     }, [onOrderUpdate, showToastForEvent]);
 
 
+
+
+    // Handle Performance Metrics real-time update
+    const handleMetricsMessage = useCallback((msg: IMessage) => {
+        if (!onMetricsUpdate) return;
+
+        try {
+            const envelope: MetricsEventEnvelope = JSON.parse(msg.body);
+            if (envelope?.event === "performance.metrics.updated" && envelope?.payload) {
+                onMetricsUpdate(envelope.payload);
+            }
+        } catch {
+            // Ignore malformed frames
+        }
+    }, [onMetricsUpdate]);
+
+
+
+
     useEffect(() => {
         if (!accessToken) return;
 
-        let subscribe : StompSubscription | null = null;           
+        let subOrders : StompSubscription | null = null;  
+        let subMetrics : StompSubscription | null = null;         
+
 
         const client = new Client({
             brokerURL: WS_URL,
             connectHeaders: {Authorization: `Bearer ${accessToken}`},
             reconnectDelay: 5000,
-            debug: (msg) => console.log("WebSocket Message: ", msg),
+            debug: (msg) => console.log("[WebSocket Message] ", msg),
 
             onConnect: () => {
                 console.log("WebSocket Connected!");
-                subscribe = client.subscribe("/topic/barista", handleMessage);
+
+                subOrders = client.subscribe("/topic/barista", handleOrderMessage);
+                subMetrics = client.subscribe("/topic/barista-dashboard/metrics", handleMetricsMessage);
             },
         });
 
         client.activate();
 
         return () => {
-            subscribe?.unsubscribe();
+            subOrders?.unsubscribe();
+            subMetrics?.unsubscribe();
             client.deactivate();
         };
-    }, [accessToken, handleMessage]);
+    }, [accessToken, handleOrderMessage, handleMetricsMessage]);
 
 }

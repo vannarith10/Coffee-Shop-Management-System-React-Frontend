@@ -5,7 +5,6 @@ import { FilterTabs } from './FilterTabs';
 type TabKey = 'all' | 'preparing' | 'done';
 
 interface HeaderProps {
-  currentTime: string;
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
   activeCount: number;

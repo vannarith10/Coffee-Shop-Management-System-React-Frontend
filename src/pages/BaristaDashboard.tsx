@@ -1,6 +1,6 @@
 //src/pages/BaristaDashboard.tsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Search } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { logout } from '../services/authService';
 import { useOrders } from '../hooks/useOrders';
@@ -13,16 +13,9 @@ import { ErrorState } from '../components/barista/ErrorState';
 import { OrderGrid } from '../components/barista/OrderGrid';
 import {playSound} from '../utils/sound';
 import { useNavigate } from 'react-router-dom';
+import { PerformanceMetricsPayload } from '@/types/metrics';
 
 type TabKey = 'all' | 'preparing' | 'done';
-
-
-const getLastUpdatedText = (lastUpdated: Date): string => {
-  const seconds = Math.floor((new Date().getTime() - lastUpdated.getTime()) / 1000);
-  if (seconds < 60) return 'Just now';
-  if (seconds < 120) return '1m ago';
-  return `${Math.floor(seconds / 60)}m ago`;
-};
 
 
 const filterOrders = (orders: Order[], activeTab: TabKey): Order[] => {
@@ -41,6 +34,30 @@ const filterOrders = (orders: Order[], activeTab: TabKey): Order[] => {
 
 export default function BaristaScreen() {
 
+  
+    // Working on footer data that I just completed at the backend side
+    // Performance Metrics
+    const [metrics, setMetrics] = useState<{
+    avgPrepTime: string | null;
+    completedToday: number | null;
+    efficiencyPercentage: number | null;
+  }>({
+    avgPrepTime: null,
+    completedToday: null,
+    efficiencyPercentage: null
+  });
+
+  const handleMetricsUpdate = useCallback((payload: PerformanceMetricsPayload) => {
+    const avg = payload.avg_prep_time ?? null;
+    setMetrics({
+      avgPrepTime: avg,
+      completedToday: typeof payload.completed_today === 'number' ? payload.completed_today : null,
+      efficiencyPercentage: typeof payload.efficiency_percentage === 'number' ? payload.efficiency_percentage : null,
+    });
+  }, []);
+
+
+
   const { 
     orders: apiOrders, 
     loading, 
@@ -49,11 +66,10 @@ export default function BaristaScreen() {
     lastUpdated, 
     loadOrders, 
     updateOrders
-  } = useOrders();
+  } = useOrders({onMetricsUpdate: handleMetricsUpdate});
 
   
   const [activeTab, setActiveTab] = useState<TabKey>('all');
-  const [currentTime, setCurrentTime] = useState<string>('09:42 AM');
   const [displayOrders, setDisplayOrders] = useState<Order[]>([]);
   const prevOrdersLength = useRef<number>(0);
   const navigate = useNavigate();
@@ -116,13 +132,17 @@ export default function BaristaScreen() {
 
   const filteredOrders = filterOrders(displayOrders, activeTab);
   const activeCount = displayOrders.filter(o => o.status !== 'DONE').length;
-  const completedToday = displayOrders.filter(o => o.status === 'DONE').length;
+  // const completedToday = displayOrders.filter(o => o.status === 'DONE').length;
+
+
+  // Footer display values
+  const footerAvgPrep = metrics.avgPrepTime ?? '_';
+  const footerCompleted = metrics.completedToday ?? '_';
+  const footerEfficiency = metrics.efficiencyPercentage != null ? `${metrics.efficiencyPercentage}%` : '_';
 
 
 
   if (loading) return <LoadingState />;
-
-  
   if (error) return (
     <ErrorState 
       error={error} 
@@ -133,6 +153,9 @@ export default function BaristaScreen() {
   );
 
 
+  
+
+
 
   return (
     <div className="min-h-screen bg-[#f6f8f6] dark:bg-[#0a0a0a] text-slate-900 dark:text-slate-100 font-sans selection:bg-emerald-500/30 flex flex-col">
@@ -140,7 +163,6 @@ export default function BaristaScreen() {
   
   {/* Header */}
   <Header 
-    currentTime={currentTime}
     activeTab={activeTab}
     onTabChange={setActiveTab}
     activeCount={activeCount}
@@ -176,16 +198,71 @@ export default function BaristaScreen() {
     )}
   </main>
 
-  {/* Footer */}
-  <footer className="max-w-360 w-full mx-auto p-6">
-    <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-8 items-center justify-around shadow-sm">
-      <StatItem label="Avg Prep Time" value="2m 45s" />
-      <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
-      <StatItem label="Completed Today" value={completedToday.toString()} />
-      <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
-      <StatItem label="Efficiency" value="82%" highlight />
+
+  <footer className="fixed bottom-0 left-0 right-0 z-50 p-6">
+    <div className="max-w-360 mx-auto flex justify-center">
+      <div className="
+        relative flex items-center justify-around flex-wrap gap-8
+        w-1/2 min-w-fit rounded-xl overflow-hidden
+        font-semibold text-white
+        cursor-pointer
+        transition-all duration-[400ms]
+        ease
+        shadow-[0_6px_6px_rgba(0,0,0,0.2),0_0_20px_rgba(0,0,0,0.1)]
+        hover:shadow-[0_8px_12px_rgba(0,0,0,0.3),0_0_30px_rgba(255,255,255,0.1)]
+      ">
+        
+        {/* Glass Filter Layer */}
+        <div 
+          className="absolute inset-0 z-0 backdrop-blur-0"
+          style={{ filter: 'url(#lg-dist)', isolation: 'isolate' }}
+        />
+        
+        {/* Glass Overlay Layer */}
+        <div 
+          className="absolute inset-0 z-[1] backdrop-blur-md"
+          style={{ background: 'rgba(255, 255, 255, 0.25)' }}
+        />
+        
+        {/* Glass Specular Layer */}
+        <div 
+          className="absolute inset-0 z-[2] rounded-[inherit] overflow-hidden"
+          style={{ 
+            boxShadow: 'inset 1px 1px 0 rgba(255, 255, 255, 0.75), inset 0 0 5px rgba(255, 255, 255, 0.75)'
+          }}
+        />
+        
+        {/* Content Layer */}
+        <div className="relative z-[3] flex items-center gap-5 px-6 py-4 flex-1 justify-between">
+          <StatItem label="Avg Prep Time" value={footerAvgPrep} />
+          
+          <div 
+            className="h-10 w-px hidden md:block" 
+            style={{ background: 'rgba(255, 255, 255, 0.3)' }}
+          />
+          
+          <StatItem label="Completed Today" value={footerCompleted.toString()} />
+          
+          <div 
+            className="h-10 w-px hidden md:block" 
+            style={{ background: 'rgba(255, 255, 255, 0.3)' }}
+          />
+          
+          <StatItem label="Efficiency" value={footerEfficiency} highlight />
+        </div>
+        
+        {/* SVG Filter */}
+        <svg className="absolute w-0 h-0" aria-hidden="true">
+          <filter id="lg-dist" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+            <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+            <feDisplacementMap in="SourceGraphic" in2="blurred" scale="70" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
+      </div>
     </div>
-  </footer>
+ </footer>
+
 </div>
   );
 }

@@ -5,9 +5,11 @@ import { transformOrder } from '../utils/orderHelpers';
 import { authFetch, getAccessToken, isRefreshTokenExpired } from '../services/authService';
 
 import { useOrderWebSocket } from './useOrderWebSocket';
+import { PerformanceMetricsPayload } from '@/types/metrics';
 
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
+const METRICS_ENDPOINT = 'http://localhost:8080/api/v1/order/today';
 
 
 interface UseOrdersReturn {
@@ -20,8 +22,12 @@ interface UseOrdersReturn {
   updateOrders: (updater: (prev: Order[]) => Order[]) => void
 }
 
+interface UseOrdersOptions {
+  onMetricsUpdate?: (payload: PerformanceMetricsPayload) => void;
+}
 
-export const useOrders = (): UseOrdersReturn => {
+
+export const useOrders = (options?: UseOrdersOptions): UseOrdersReturn => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +35,7 @@ export const useOrders = (): UseOrdersReturn => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
 
+  // --- Orders REST ---
   const fetchOrders = async (): Promise<APIOrder[]> => {
     const response = await authFetch(`${API_BASE_URL}/order/get-orders`);
     
@@ -49,14 +56,22 @@ export const useOrders = (): UseOrdersReturn => {
     if (showLoading) setLoading(true);
     setError(null);
     setIsSessionExpired(false);
+
+    // Add timeout protection
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setError('Request timed out. Please try again.');
+    }, 10000); // 10 second timeout
     
     try {
       const apiOrders = await fetchOrders();
       const transformedOrders = apiOrders.map(transformOrder);
       setOrders(transformedOrders);
       setLastUpdated(new Date());
+      clearTimeout(timeoutId); // Clear timeout on success
 
     } catch (err) {
+      clearTimeout(timeoutId); // Clear timeout on error
       const errorMessage = err instanceof Error ? err.message : 'Failed to load orders';
       
       if (errorMessage === 'SESSION_EXPIRED') {
@@ -68,18 +83,48 @@ export const useOrders = (): UseOrdersReturn => {
       
       console.error('Error fetching orders:', err);
     } finally {
+      clearTimeout(timeoutId); // Ensure timeout is cleared
       if (showLoading) setLoading(false);
     }
   }, []);
 
 
-  const updateOrders = useCallback((updater: (prev: Order[]) => Order[]) => {
+    const updateOrders = useCallback((updater: (prev: Order[]) => Order[]) => {
     setOrders(prev => updater(prev));
   }, []);
 
 
+
+
+  // --- Initial Metrics fetch
+  const onMetricsUpdate = options?.onMetricsUpdate;
+
+  const loadInitialMetrics = useCallback(async () => {
+    if (!onMetricsUpdate) return;
+
+    try {
+      const response = await authFetch(METRICS_ENDPOINT, { method: 'GET' });
+      if (!response.ok) {
+        // Don't throw, footer will update when WS pushes
+        return;
+      }
+      const data = await response.json();
+
+      onMetricsUpdate({
+        avg_prep_time: data.avg_prep_time ?? null,
+        completed_today: typeof data.completed_today === 'number' ? data.completed_today : undefined,
+        efficiency_percentage: typeof data.efficiency_percentage === 'number' ? data.efficiency_percentage : undefined,
+      });
+    } catch (e) {
+      // Silent fail - WebSocket will eventually update metrics
+      console.warn('Initial metrics fetch failed: ', e);
+    }
+  }, [onMetricsUpdate]);
+
+
+
   // WebSocket
-  useOrderWebSocket(getAccessToken() || undefined , updateOrders);
+  useOrderWebSocket(getAccessToken() || undefined , updateOrders, options?.onMetricsUpdate);
 
 
 
@@ -93,13 +138,15 @@ export const useOrders = (): UseOrdersReturn => {
     }
     
     loadOrders();
+    loadInitialMetrics();
     
+    // Pull Orders every 30s
     const interval = setInterval(() => {
       loadOrders(false);
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [loadOrders]);
+  }, [loadOrders, loadInitialMetrics]);
 
   return {
     orders,
