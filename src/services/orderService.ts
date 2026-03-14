@@ -1,9 +1,89 @@
 //src/sevices/orderService.ts
-import { authFetch } from './authService';
+import { authFetch, getAccessToken } from './authService';
+import type { 
+  CreateOrderRequest, 
+  CreateOrderResponse, 
+  ConfirmOrderResponse,
+  CreatedOrder 
+} from "../types/order";
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
+
+
+// =========================== Create & Confirm Order ================================
+
+
+export class OrderError extends Error {
+  constructor(message: string, public statusCode?: number) {
+    super(message);
+    this.name = "OrderError";
+  }
+}
+
+
+const getAuthHeaders = () => {
+  const token = getAccessToken();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+
+
+export const createOrder = async (request: CreateOrderRequest): Promise<CreatedOrder> => {
+  const response = await fetch(`${API_BASE_URL}/order/create-order`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorDate = await response.json().catch(() => ({}));
+    throw new OrderError(
+      errorDate.message || `Failed to create order: ${response.status}`,
+      response.status
+    );
+  }
+
+  const data: CreateOrderResponse = await response.json();
+
+  return {
+    orderId: data.order_id,
+    orderNumber: data.order_number,
+    totalAmount: data.total_amount,
+    paymentMethod: data.payment_method,
+    note: data.note,
+  };
+};
+
+
+
+export const confirmOrder = async (orderId: string): Promise<ConfirmOrderResponse> => {
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/confirm`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new OrderError(
+      errorData.message || `Failed to confirm order: ${response.status}`,
+      response.status
+    );
+  }
+
+  return response.json();
+};
+
+
+
+
 export type OrderStatusUpdate = 'DONE' | 'PREPARING';
+
+
+
 
 export interface StatusUpdateResponse {
   order_id: string;
@@ -11,9 +91,14 @@ export interface StatusUpdateResponse {
   new_status: string;
 }
 
+
+
+
 export interface UpdateOrderStatusRequest {
   status: OrderStatusUpdate;
 }
+
+
 
 
 export async function updateOrderStatus(

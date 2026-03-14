@@ -1,24 +1,39 @@
+// src/components/pos/CartSidebar.tsx
 import React from "react";
-import { CartSidebarProps } from "../../types/pos";
+import { CartItem, CartSidebarProps } from "../../types/pos";
 import { CartItemRow } from "./CartItem";
 import { CartSummary } from "./CartSummary";
 
-export const CartSidebar: React.FC<CartSidebarProps> = ({
+
+interface SimplifiedCartSidebarProps {
+  cart: CartItem[];
+  onUpdateQuantity: (productId: string, delta: number) => void;
+  onRemove: (productId: string) => void;
+  onClear: () => void;
+  onCheckout: () => void;
+}
+
+
+export const CartSidebar: React.FC<SimplifiedCartSidebarProps> = ({
   cart,
   onUpdateQuantity,
   onRemove,
   onClear,
-  onCheckout,
+  onCheckout
 }) => {
-  const cartTotal = cart.reduce(
-    (sum, item) => sum + item.price * item.cartQuantity,
-    0
-  );
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
+
+
   const cartItemCount = cart.reduce((sum, item) => sum + item.cartQuantity, 0);
   const outOfStockInCart = cart.filter((item) => item.in_stock === false);
 
+  // // Disable cart modification when order is being processed or confirmed
+  // const isLocked = orderState === "CREATING" || orderState === "CONFIRMING" || orderState === "CONFIRMED";
+
+
+
   return (
-    <aside className="w-96 bg-white/95 backdrop-blur-sm shadow-2xl border-l flex flex-col h-screen flex-shrink-0 ">
+    <aside className="w-96 bg-white/95 backdrop-blur-sm shadow-2xl border-l flex flex-col h-screen flex-shrink-0">
       {/* Header */}
       <div className="p-4 border-b bg-gray-50/80 flex justify-between items-center flex-shrink-0">
         <div>
@@ -69,8 +84,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
       {/* Footer */}
       <CartSummary
         subtotal={cartTotal}
-        tax={cartTotal * 0.1}
-        total={cartTotal * 1.1}
+        total={cartTotal}
         itemCount={cartItemCount}
         hasItems={cart.length > 0}
         hasUnavailableItems={outOfStockInCart.length > 0}
@@ -78,4 +92,5 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
       />
     </aside>
   );
+
 };
