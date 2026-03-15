@@ -1,20 +1,21 @@
 // src/services/api.ts
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { 
-  getAccessToken, 
-  getRefreshToken, 
-  clearAuth, 
-  setAccessToken, 
+import {
+  getAccessToken,
+  getRefreshToken,
+  clearAuth,
+  setAccessToken,
   setRefreshToken,
-  isRefreshTokenExpired 
+  isRefreshTokenExpired,
 } from "./authService";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
+  baseURL: API_BASE_URL,
   timeout: 10000,
 });
-
 
 interface RetryConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -23,12 +24,10 @@ interface RetryConfig extends InternalAxiosRequestConfig {
 let isRefreshing = false;
 let refreshSubscribers: Array<(token: string) => void> = [];
 
-
 function onTokenRefreshed(token: string) {
   refreshSubscribers.forEach((callback) => callback(token));
   refreshSubscribers = [];
 }
-
 
 function addRefreshSubscriber(callback: (token: string) => void) {
   refreshSubscribers.push(callback);
@@ -43,7 +42,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor
@@ -58,7 +57,6 @@ api.interceptors.response.use(
 
     // If 401 and not already retrying
     if (error.response?.status === 401 && !originalRequest._retry) {
-      
       if (isRefreshing) {
         return new Promise((resolve) => {
           addRefreshSubscriber((token) => {
@@ -91,9 +89,9 @@ api.interceptors.response.use(
             expiresAt: string;
           };
         }>(
-          "http://localhost:8080/api/v1/token/get-acceess-token", // Your endpoint
+          `${API_BASE_URL}/token/get-access-token`, // Your endpoint
           { token: refreshToken }, // Your backend expects { "token": "..." }
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
 
         // FIXED: Update BOTH access AND refresh tokens
@@ -101,10 +99,9 @@ api.interceptors.response.use(
         setRefreshToken(res.data.refresh.token, res.data.refresh.expiresAt);
 
         onTokenRefreshed(res.data.accessToken);
-        
+
         originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
         return api(originalRequest);
-        
       } catch (refreshError) {
         clearAuth();
         window.location.href = "/login";
@@ -115,7 +112,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

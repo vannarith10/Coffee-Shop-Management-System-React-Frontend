@@ -1,13 +1,14 @@
 // services/dashboardService.ts
-import { 
-  getAccessToken, 
-  getRefreshToken, 
-  isRefreshTokenExpired, 
+import {
+  getAccessToken,
+  getRefreshToken,
+  isRefreshTokenExpired,
   setAccessToken,
-  clearAuth 
+  clearAuth,
 } from "./authService";
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 export interface MetricData {
   value: number;
@@ -40,7 +41,7 @@ interface TokenRefreshResponse {
  */
 async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = getRefreshToken();
-  
+
   if (!refreshToken || isRefreshTokenExpired()) {
     console.error("Refresh token expired or not available");
     clearAuth();
@@ -49,7 +50,7 @@ async function refreshAccessToken(): Promise<string | null> {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/token/get-access-token`, {
+    const response = await fetch(`${API_BASE_URL}/token/get-access-token`, {
       method: "POST",
       headers: {
         // "Content-Type": "application/json",
@@ -65,7 +66,7 @@ async function refreshAccessToken(): Promise<string | null> {
     setAccessToken(data.accessToken);
     localStorage.setItem("refreshToken", data.refresh.token);
     localStorage.setItem("refreshExpiresAt", data.refresh.expiresAt);
-    
+
     return data.accessToken;
   } catch (error) {
     console.error("Failed to refresh token:", error);
@@ -79,8 +80,8 @@ async function refreshAccessToken(): Promise<string | null> {
  * Makes an authenticated API request with automatic token refresh
  */
 async function authenticatedFetch(
-  url: string, 
-  options: RequestInit = {}
+  url: string,
+  options: RequestInit = {},
 ): Promise<Response> {
   let token = getAccessToken();
 
@@ -97,7 +98,7 @@ async function authenticatedFetch(
     ...options,
     headers: {
       ...options.headers,
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
   });
@@ -106,7 +107,7 @@ async function authenticatedFetch(
   if (response.status === 401) {
     console.log("Access token expired, attempting refresh...");
     const newToken = await refreshAccessToken();
-    
+
     if (!newToken) {
       throw new Error("Session expired. Please login again.");
     }
@@ -116,7 +117,7 @@ async function authenticatedFetch(
       ...options,
       headers: {
         ...options.headers,
-        "Authorization": `Bearer ${newToken}`,
+        Authorization: `Bearer ${newToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -128,7 +129,7 @@ async function authenticatedFetch(
 export const dashboardService = {
   async getBusinessAnalyticsSummary(): Promise<SummaryResponse> {
     const response = await authenticatedFetch(
-      `${API_BASE_URL}/api/v1/admin-dashboard/summary`
+      `${API_BASE_URL}/admin-dashboard/summary`,
     );
 
     if (!response.ok) {
@@ -142,7 +143,7 @@ export const dashboardService = {
   // Add more dashboard endpoints here as needed
   async getDetailedReports(startDate: string, endDate: string): Promise<any> {
     const response = await authenticatedFetch(
-      `${API_BASE_URL}/api/v1/admin-dashboard/reports?start=${startDate}&end=${endDate}`
+      `${API_BASE_URL}/admin-dashboard/reports?start=${startDate}&end=${endDate}`,
     );
 
     if (!response.ok) {
