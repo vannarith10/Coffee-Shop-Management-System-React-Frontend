@@ -16,7 +16,9 @@ import {RefreshLoadingScreen} from "../components/LoadingScreen"
 import { createOrder, confirmOrder, } from "../services/orderService";
 import type { CreateOrderRequest, CreatedOrder, OrderFlowState } from "../types/order";
 import { ConfirmationScreen } from "../components/pos/ConfirmationScreen";
-import { PlaceOrderModal } from "../components/pos/PlaceOrderModal";
+// import { PlaceOrderModal } from "../components/pos/PlaceOrderModal";
+import PlaceOrderModal from "@/components/pos/PlaceOrderModal";
+
 
 
 
