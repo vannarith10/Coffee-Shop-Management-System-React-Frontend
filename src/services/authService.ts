@@ -1,5 +1,6 @@
 // src/services/authService.ts
-const API_URL = "http://localhost:8080/api/v1/auth";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_URL = `${API_BASE_URL}/auth`;
 
 export interface LoginResponse {
   accessToken: string;
@@ -72,7 +73,7 @@ export async function refreshAccessToken(): Promise<string> {
       throw new Error("Refresh token expired");
     }
 
-    const res = await fetch("http://localhost:8080/api/v1/token/get-access-token", {
+    const res = await fetch(`${API_BASE_URL}/token/get-access-token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

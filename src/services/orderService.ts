@@ -1,26 +1,26 @@
 //src/sevices/orderService.ts
-import { authFetch, getAccessToken } from './authService';
-import type { 
-  CreateOrderRequest, 
-  CreateOrderResponse, 
+import { authFetch, getAccessToken } from "./authService";
+import type {
+  CreateOrderRequest,
+  CreateOrderResponse,
   ConfirmOrderResponse,
-  CreatedOrder 
+  CreatedOrder,
 } from "../types/order";
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-
-
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 // =========================== Create & Confirm Order ================================
 
-
 export class OrderError extends Error {
-  constructor(message: string, public statusCode?: number) {
+  constructor(
+    message: string,
+    public statusCode?: number,
+  ) {
     super(message);
     this.name = "OrderError";
   }
 }
-
 
 const getAuthHeaders = () => {
   const token = getAccessToken();
@@ -30,9 +30,9 @@ const getAuthHeaders = () => {
   };
 };
 
-
-
-export const createOrder = async (request: CreateOrderRequest): Promise<CreatedOrder> => {
+export const createOrder = async (
+  request: CreateOrderRequest,
+): Promise<CreatedOrder> => {
   const response = await fetch(`${API_BASE_URL}/order/create-order`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -43,7 +43,7 @@ export const createOrder = async (request: CreateOrderRequest): Promise<CreatedO
     const errorDate = await response.json().catch(() => ({}));
     throw new OrderError(
       errorDate.message || `Failed to create order: ${response.status}`,
-      response.status
+      response.status,
     );
   }
 
@@ -58,9 +58,9 @@ export const createOrder = async (request: CreateOrderRequest): Promise<CreatedO
   };
 };
 
-
-
-export const confirmOrder = async (orderId: string): Promise<ConfirmOrderResponse> => {
+export const confirmOrder = async (
+  orderId: string,
+): Promise<ConfirmOrderResponse> => {
   const response = await fetch(`${API_BASE_URL}/orders/${orderId}/confirm`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -70,20 +70,14 @@ export const confirmOrder = async (orderId: string): Promise<ConfirmOrderRespons
     const errorData = await response.json().catch(() => ({}));
     throw new OrderError(
       errorData.message || `Failed to confirm order: ${response.status}`,
-      response.status
+      response.status,
     );
   }
 
   return response.json();
 };
 
-
-
-
-export type OrderStatusUpdate = 'DONE' | 'PREPARING';
-
-
-
+export type OrderStatusUpdate = "DONE" | "PREPARING";
 
 export interface StatusUpdateResponse {
   order_id: string;
@@ -91,43 +85,39 @@ export interface StatusUpdateResponse {
   new_status: string;
 }
 
-
-
-
 export interface UpdateOrderStatusRequest {
   status: OrderStatusUpdate;
 }
 
-
-
-
 export async function updateOrderStatus(
-  orderId: string, 
-  status: OrderStatusUpdate
+  orderId: string,
+  status: OrderStatusUpdate,
 ): Promise<StatusUpdateResponse> {
   const response = await authFetch(
     `${API_BASE_URL}/order/${orderId}/update-status`,
     {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ status }),
-    }
+    },
   );
 
   if (!response.ok) {
     if (response.status === 401) {
-      throw new Error('SESSION_EXPIRED');
+      throw new Error("SESSION_EXPIRED");
     }
     if (response.status === 403) {
-      throw new Error('FORBIDDEN');
+      throw new Error("FORBIDDEN");
     }
     if (response.status === 404) {
-      throw new Error('ORDER_NOT_FOUND');
+      throw new Error("ORDER_NOT_FOUND");
     }
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Failed to update status: ${response.statusText}`);
+    throw new Error(
+      errorData.message || `Failed to update status: ${response.statusText}`,
+    );
   }
 
   return response.json();
