@@ -47,6 +47,8 @@ export default function BaristaScreen() {
     efficiencyPercentage: null
   });
 
+  
+
   const handleMetricsUpdate = useCallback((payload: PerformanceMetricsPayload) => {
     const avg = payload.avg_prep_time ?? null;
     setMetrics({

@@ -36,6 +36,9 @@ interface TokenRefreshResponse {
   };
 }
 
+
+
+
 /**
  * Attempts to refresh the access token using the refresh token
  */
@@ -75,6 +78,9 @@ async function refreshAccessToken(): Promise<string | null> {
     return null;
   }
 }
+
+
+
 
 /**
  * Makes an authenticated API request with automatic token refresh
@@ -125,6 +131,9 @@ async function authenticatedFetch(
 
   return response;
 }
+
+
+
 
 export const dashboardService = {
   async getBusinessAnalyticsSummary(): Promise<SummaryResponse> {
