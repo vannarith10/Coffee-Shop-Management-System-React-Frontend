@@ -35,6 +35,9 @@ export const useOrders = (options?: UseOrdersOptions): UseOrdersReturn => {
   const [isSessionExpired, setIsSessionExpired] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
+
+
+
   // --- Orders REST ---
   const fetchOrders = async (): Promise<APIOrder[]> => {
     const response = await authFetch(`${API_BASE_URL}/api/v1/order/get-orders`);
@@ -51,6 +54,9 @@ export const useOrders = (options?: UseOrdersOptions): UseOrdersReturn => {
 
     return response.json();
   };
+
+
+  
 
   const loadOrders = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);

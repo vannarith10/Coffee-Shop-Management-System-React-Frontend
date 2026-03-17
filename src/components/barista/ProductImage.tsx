@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ImageOff } from 'lucide-react';
-import { getFallbackImage } from '../../utils/orderHelpers';
 import { OrderStatus } from '../../types/order';
+
+const PLACEHOLDER_URL = "https://placehold.co/200x140?text=No+Image"
 
 interface ProductImageProps {
   src: string | null;
@@ -16,17 +17,17 @@ export const ProductImage: React.FC<ProductImageProps> = ({
   isCompleted, 
   orderStatus 
 }) => {
-  const [imgSrc, setImgSrc] = useState<string>(src || getFallbackImage(alt));
+  const [imgSrc, setImgSrc] = useState<string>(src || PLACEHOLDER_URL);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    setImgSrc(src || getFallbackImage(alt));
+    setImgSrc(src || PLACEHOLDER_URL);
     setHasError(false);
   }, [src, alt]);
 
   const handleError = () => {
     if (!hasError) {
-      setImgSrc(getFallbackImage(alt));
+      setImgSrc(PLACEHOLDER_URL);
       setHasError(true);
     }
   };
@@ -35,7 +36,7 @@ export const ProductImage: React.FC<ProductImageProps> = ({
     <div className="relative shrink-0">
       <img 
         src={imgSrc}
-        alt={alt}
+        alt={alt || "No Image"}
         onError={handleError}
         className={`w-12 h-12 rounded-lg object-cover border-2 transition-all ${
           isCompleted 
