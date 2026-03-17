@@ -42,8 +42,8 @@ export function useProducts(): UseProductsResult {
         setIsRefreshing(true);
 
         const API_BASE_URL =
-          import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-        const response = await fetch(`${API_BASE_URL}/token/get-access-token`, {
+          import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+        const response = await fetch(`${API_BASE_URL}/api/v1/token/get-access-token`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: refresh }),

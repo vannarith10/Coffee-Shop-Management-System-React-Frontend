@@ -61,21 +61,24 @@
 >> Purpose: Drives the "Top Selling Products" chart and displays the current unit target.
 // RESPONSE:
     {
-      "unit_target": 200,
-      "products": [
+      "units_target": 200,
+      "top_products": [
         { 
             "id": "p1", 
             "name": "Espresso Roast", 
+            "image_url": "",
             "units_sold": 420 
         },
         { 
             "id": "p2", 
             "name": "Oat Milk Latte", 
+            "image_url": "",
             "units_sold": 315 
         },
         { 
             "id": "p3", 
             "name": "Cold Brew Special", 
+            "image_url": "",
             "units_sold": 240 
         }
       ]

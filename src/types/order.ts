@@ -28,22 +28,22 @@ export interface APIOrder {
 
 
 
-// export interface Order {
-//   id: string;
-//   orderNumber: string;
-//   status: OrderStatus;
-//   notes: string;
-//   createdAt: string;
-//   items: OrderItem[];
-// }
+export interface Order {
+  id: string;
+  orderNumber: string;
+  status: OrderStatus;
+  notes: string;
+  createdAt: string;
+  items: OrderItem[];
+}
 
 
-// export interface OrderItem {
-//   id: string;
-//   name: string;
-//   imageUrl: string | null;
-//   quantity: number;
-// }
+export interface OrderItem {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  quantity: number;
+}
 
 
 export type OrderUpdateEvent = {
@@ -51,11 +51,6 @@ export type OrderUpdateEvent = {
   payload: APIOrder;
 }
 
-
-export interface OrderItem {
-  productId: string;
-  quantity: number;
-}
 
 
 export interface CreateOrderRequest {

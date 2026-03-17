@@ -11,9 +11,8 @@ import {
 import { useOrderWebSocket } from "./useOrderWebSocket";
 import { PerformanceMetricsPayload } from "@/types/metrics";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-const METRICS_ENDPOINT = `${API_BASE_URL}/order/today`;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const METRICS_ENDPOINT = `${API_BASE_URL}/api/v1/order/today`;
 
 interface UseOrdersReturn {
   orders: Order[];
@@ -38,7 +37,7 @@ export const useOrders = (options?: UseOrdersOptions): UseOrdersReturn => {
 
   // --- Orders REST ---
   const fetchOrders = async (): Promise<APIOrder[]> => {
-    const response = await authFetch(`${API_BASE_URL}/order/get-orders`);
+    const response = await authFetch(`${API_BASE_URL}/api/v1/order/get-orders`);
 
     if (!response.ok) {
       if (response.status === 401) {

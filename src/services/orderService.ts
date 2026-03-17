@@ -7,10 +7,23 @@ import type {
   CreatedOrder,
 } from "../types/order";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-// =========================== Create & Confirm Order ================================
+
+export type OrderStatusUpdate = "DONE" | "PREPARING";
+
+
+export interface StatusUpdateResponse {
+  order_id: string;
+  old_status: string;
+  new_status: string;
+}
+
+
+export interface UpdateOrderStatusRequest {
+  status: OrderStatusUpdate;
+}
+
 
 export class OrderError extends Error {
   constructor(
@@ -22,6 +35,8 @@ export class OrderError extends Error {
   }
 }
 
+
+
 const getAuthHeaders = () => {
   const token = getAccessToken();
   return {
@@ -30,10 +45,15 @@ const getAuthHeaders = () => {
   };
 };
 
+
+
+// =======================
+// CASHIER Create Order
+// =======================
 export const createOrder = async (
   request: CreateOrderRequest,
 ): Promise<CreatedOrder> => {
-  const response = await fetch(`${API_BASE_URL}/order/create-order`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/order/create-order`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(request),
@@ -58,10 +78,15 @@ export const createOrder = async (
   };
 };
 
+
+
+// ========================
+// CASHIER Confirm Order
+// ========================
 export const confirmOrder = async (
   orderId: string,
 ): Promise<ConfirmOrderResponse> => {
-  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/confirm`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/confirm`, {
     method: "POST",
     headers: getAuthHeaders(),
   });
@@ -77,24 +102,18 @@ export const confirmOrder = async (
   return response.json();
 };
 
-export type OrderStatusUpdate = "DONE" | "PREPARING";
 
-export interface StatusUpdateResponse {
-  order_id: string;
-  old_status: string;
-  new_status: string;
-}
 
-export interface UpdateOrderStatusRequest {
-  status: OrderStatusUpdate;
-}
 
+// ============================
+// BARISTA Update Order Status
+// ============================
 export async function updateOrderStatus(
   orderId: string,
   status: OrderStatusUpdate,
 ): Promise<StatusUpdateResponse> {
   const response = await authFetch(
-    `${API_BASE_URL}/order/${orderId}/update-status`,
+    `${API_BASE_URL}/api/v1/order/${orderId}/update-status`,
     {
       method: "PUT",
       headers: {

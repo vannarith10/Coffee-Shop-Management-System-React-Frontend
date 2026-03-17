@@ -5,7 +5,7 @@ import { Product, ProductUpdateEvent } from "../types";
 import { applyProductPatch } from "../utils/productUtils";
 import { useProductSounds } from "./useProductSound";
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws";
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
 
 export function useProductWebSocket(
   accessToken: string | undefined,
@@ -72,7 +72,7 @@ export function useProductWebSocket(
     let subscription: StompSubscription | null = null;
 
     const client = new Client({
-      brokerURL: WS_URL,
+      brokerURL: `${WS_URL}/ws`,
       connectHeaders: { Authorization: `Bearer ${accessToken}` },
       reconnectDelay: 5000,
       debug: (msg) => console.log("[WS]", msg),

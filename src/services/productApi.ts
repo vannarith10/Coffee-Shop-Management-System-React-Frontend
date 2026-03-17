@@ -10,7 +10,7 @@ export class ProductApiError extends Error {
 
 export async function fetchMenuItems() {
   try {
-    const res = await api.get('/product/menu'); 
+    const res = await api.get('/api/v1/product/menu'); 
     return res.data;
   } catch (err: any) {
     throw new ProductApiError({

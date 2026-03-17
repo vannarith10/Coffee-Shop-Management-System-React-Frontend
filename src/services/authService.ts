@@ -1,6 +1,6 @@
 // src/services/authService.ts
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-const API_URL = `${API_BASE_URL}/auth`;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
 
 export interface LoginResponse {
   accessToken: string;
@@ -17,6 +17,9 @@ export interface LoginResponse {
   };
 }
 
+
+
+
 // Refresh response is different - no user object
 export interface RefreshResponse {
   accessToken: string;
@@ -32,9 +35,8 @@ export interface RefreshResponse {
 
 
 
-
 export async function login(username: string, password: string): Promise<LoginResponse> {
-  const res = await fetch(`${API_URL}/login`, {
+  const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -73,7 +75,7 @@ export async function refreshAccessToken(): Promise<string> {
       throw new Error("Refresh token expired");
     }
 
-    const res = await fetch(`${API_BASE_URL}/token/get-access-token`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/token/get-access-token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

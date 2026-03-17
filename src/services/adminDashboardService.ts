@@ -8,7 +8,7 @@ import {
 } from "./authService";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 export interface MetricData {
   value: number;
@@ -50,7 +50,7 @@ async function refreshAccessToken(): Promise<string | null> {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/token/get-access-token`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/token/get-access-token`, {
       method: "POST",
       headers: {
         // "Content-Type": "application/json",
@@ -66,8 +66,8 @@ async function refreshAccessToken(): Promise<string | null> {
     setAccessToken(data.accessToken);
     localStorage.setItem("refreshToken", data.refresh.token);
     localStorage.setItem("refreshExpiresAt", data.refresh.expiresAt);
-
     return data.accessToken;
+
   } catch (error) {
     console.error("Failed to refresh token:", error);
     clearAuth();
@@ -129,7 +129,7 @@ async function authenticatedFetch(
 export const dashboardService = {
   async getBusinessAnalyticsSummary(): Promise<SummaryResponse> {
     const response = await authenticatedFetch(
-      `${API_BASE_URL}/admin-dashboard/summary`,
+      `${API_BASE_URL}/api/v1/admin-dashboard/summary`,
     );
 
     if (!response.ok) {
@@ -143,7 +143,7 @@ export const dashboardService = {
   // Add more dashboard endpoints here as needed
   async getDetailedReports(startDate: string, endDate: string): Promise<any> {
     const response = await authenticatedFetch(
-      `${API_BASE_URL}/admin-dashboard/reports?start=${startDate}&end=${endDate}`,
+      `${API_BASE_URL}/ap1/v1/admin-dashboard/reports?start=${startDate}&end=${endDate}`,
     );
 
     if (!response.ok) {
