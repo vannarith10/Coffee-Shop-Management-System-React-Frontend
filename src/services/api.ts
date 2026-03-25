@@ -89,7 +89,7 @@ api.interceptors.response.use(
             expiresAt: string;
           };
         }>(
-          `${API_BASE_URL}api/v1/token/get-access-token`, // Your endpoint
+          `${API_BASE_URL}/api/v1/token/get-access-token`, // Your endpoint
           { token: refreshToken }, // Your backend expects { "token": "..." }
           { headers: { "Content-Type": "application/json" } },
         );

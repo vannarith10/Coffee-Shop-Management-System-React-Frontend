@@ -16,6 +16,8 @@ export const calculateElapsedTime = (createdAt: string): string => {
   return `00:${minutes.toString().padStart(2, '0')}`;
 };
 
+
+
 export const mapStatus = (apiStatus: string): OrderStatus => {
   const statusMap: Record<string, OrderStatus> = {
     'DONE': 'DONE',
@@ -26,24 +28,9 @@ export const mapStatus = (apiStatus: string): OrderStatus => {
   return statusMap[apiStatus] || 'QUEUED';
 };
 
-const FALLBACK_IMAGES: Record<string, string> = {
-  'Espresso': 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=100&h=100&fit=crop',
-  'Coffee': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop',
-  'Latte': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=100&h=100&fit=crop',
-  'Tea': 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=100&h=100&fit=crop',
-  'Strawberry': 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=100&h=100&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100&fit=crop',
-};
 
-export const getFallbackImage = (itemName: string): string => {
-  const lowerName = itemName.toLowerCase();
-  for (const [key, url] of Object.entries(FALLBACK_IMAGES)) {
-    if (lowerName.includes(key.toLowerCase())) {
-      return url;
-    }
-  }
-  return FALLBACK_IMAGES.default;
-};
+
+
 
 export const transformOrder = (apiOrder: APIOrder): Order => {
   
