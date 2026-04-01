@@ -13,6 +13,7 @@ import DashboardHeader from "../components/admin/DashboardHeader";
 import ErrorBanner from "../components/admin/ErrorBanner";
 import DashboardContent from "../components/admin/DashboardContent";
 import PlaceholderContent from "../components/admin/PlaceholderContent";
+import StaffContent from "../components/admin/StaffContent";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -104,12 +105,7 @@ export default function AdminDashboard() {
           />
         );
       case "staff":
-        return (
-          <PlaceholderContent
-            title="Staff Management"
-            description="Manage employees, schedules, and permissions..."
-          />
-        );
+        return <StaffContent />;
       case "inventory":
         return (
           <PlaceholderContent
