@@ -4,23 +4,42 @@ import AdminDashboard from "./pages/AdminDashboard";
 import CashierPOS from "./pages/CashierPOS";
 import BaristaKitchen from "./pages/BaristaDashboard";
 import Unauthorized from "./pages/Unauthorized";
-import { getAccessToken, getUserRole } from "./services/authService";
+import {
+  getAccessToken,
+  getRefreshToken,
+  isRefreshTokenExpired,
+  getUserRole,
+} from "./services/authService";
+
+/**
+ * Returns true when the user has any valid session:
+ *  - They have a live access token, OR
+ *  - They have a non-expired refresh token (axios interceptor will silently
+ *    get a new access token on the first API call that returns 401).
+ *
+ * Redirecting to /login solely because the SHORT-LIVED access token is missing
+ * from localStorage (e.g. it expired between renders) causes the bug where
+ * the user gets kicked out while the token refresh is in-flight.
+ */
+function isSessionAlive(): boolean {
+  if (getAccessToken()) return true;                       // access token present
+  const rt = getRefreshToken();
+  return !!rt && !isRefreshTokenExpired();                 // refresh token still valid
+}
 
 // Protected route with role check
-function ProtectedRoute({ 
-  children, 
-  allowedRoles 
-}: { 
+function ProtectedRoute({
+  children,
+  allowedRoles,
+}: {
   children: React.ReactNode;
   allowedRoles: string[];
 }) {
-  const token = getAccessToken();
-  const role = getUserRole();
-
-  if (!token) {
+  if (!isSessionAlive()) {
     return <Navigate to="/login" replace />;
   }
 
+  const role = getUserRole();
   if (!allowedRoles.includes(role || "")) {
     return <Navigate to="/unauthorized" replace />;
   }

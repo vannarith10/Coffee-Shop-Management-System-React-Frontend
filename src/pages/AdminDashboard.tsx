@@ -6,14 +6,14 @@ import {
   SummaryResponse,
 } from "../services/adminDashboardService";
 
-import { DisplayStat } from "../components/admin/types";
-import { formatCurrency, formatNumber, formatPercentage } from "../components/admin/formatters";
-import Sidebar from "../components/admin/Sidebar";
-import DashboardHeader from "../components/admin/DashboardHeader";
-import ErrorBanner from "../components/admin/ErrorBanner";
-import DashboardContent from "../components/admin/DashboardContent";
-import PlaceholderContent from "../components/admin/PlaceholderContent";
-import StaffContent from "../components/admin/StaffContent";
+import { DisplayStat } from "../components/admin/tabs/dashboard/types";
+import { formatCurrency, formatNumber, formatPercentage } from "../components/admin/tabs/dashboard/formatters";
+import Sidebar from "../components/admin/shared/Sidebar";
+import DashboardHeader from "../components/admin/shared/DashboardHeader";
+import ErrorBanner from "../components/admin/shared/ErrorBanner";
+import DashboardContent from "../components/admin/tabs/dashboard/DashboardContent";
+import PlaceholderContent from "../components/admin/shared/PlaceholderContent";
+import StaffContent from "../components/admin/tabs/staff/StaffContent";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();

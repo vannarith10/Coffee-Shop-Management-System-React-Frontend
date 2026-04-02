@@ -20,7 +20,7 @@ export default function WorkingDaysPicker({ selectedDays, onToggle }: WorkingDay
               onClick={() => onToggle(day.id)}
               className={`flex items-center justify-center w-8 h-8 rounded-md text-[10px] font-bold cursor-pointer transition-all border ${
                 selected
-                  ? 'bg-primary border-primary text-white'
+                  ? 'bg-green-600 border-primary text-white'
                   : `bg-slate-50 dark:bg-[#112115] border-slate-200 dark:border-[#3c5342] hover:border-primary dark:text-slate-300 ${
                       day.isWeekend ? 'text-red-400' : ''
                     }`

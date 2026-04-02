@@ -1,7 +1,7 @@
-// Working day type
+// ── Shared day type (used by add & edit employee forms) ─────────────────────
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
-// Add-employee form data
+// ── Add-employee form data ───────────────────────────────────────────────────
 export type EmployeeFormData = {
   fullName: string;
   email: string;
@@ -14,40 +14,7 @@ export type EmployeeFormData = {
   isActive: boolean;
 };
 
-// Navigation item type
-export type NavItem = {
-  id: string;
-  label: string;
-  icon: string;
-};
-
-// Formatted stat data for display
-export type DisplayStat = {
-  title: string;
-  value: string;
-  change: string;
-  icon: string;
-  rawValue: number;
-  rawGrowth: number;
-};
-
-// Low stock item type
-export type LowStockItem = {
-  name: string;
-  category: string;
-  stock: number;
-  status: "critical" | "low";
-};
-
-// Top product type
-export type TopProduct = {
-  name: string;
-  units: number;
-  percentage: number;
-  color: string;
-};
-
-// Staff member type
+// ── Staff member (table row) type ────────────────────────────────────────────
 export type StaffMember = {
   id: string;
   staffId: string;
