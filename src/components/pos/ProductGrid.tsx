@@ -96,9 +96,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   const filteredByType = products.filter((p) => p.category_type === typeFilter);
-
   const filteredByName = nameFilter === "ALL" ? filteredByType : filteredByType.filter((p) => p.category_name === nameFilter);
-
   const grouped = groupByCategoryName(filteredByName);
 
   return (

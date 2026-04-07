@@ -17,7 +17,8 @@ import { createOrder, confirmOrder, } from "../services/orderService";
 import type { CreateOrderRequest, CreatedOrder, OrderFlowState } from "../types/order";
 import { ConfirmationScreen } from "../components/pos/ConfirmationScreen";
 // import { PlaceOrderModal } from "../components/pos/PlaceOrderModal";
-import PlaceOrderModal from "@/components/pos/PlaceOrderModal";
+import PlaceOrderModal from "../components/pos/PlaceOrderModal";
+import NoProductFound from "../components/pos/NoProductFound";
 
 
 
@@ -227,9 +228,10 @@ export default function CashierPOS() {
             style={{ backgroundImage: 'url(https://wallpapercave.com/wp/wp8965797.jpg)' }}
           >
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No products found</p>
-              </div>
+              // <div className="text-center py-12">
+              //   <p className="text-white font-bold text-lg">No products found</p>
+              // </div>
+              <NoProductFound/>
             ) : (
               <ProductGrid
                 products={filteredProducts}
