@@ -73,7 +73,8 @@ api.interceptors.response.use(
       if (!refreshToken || isRefreshTokenExpired()) {
         isRefreshing = false;
         clearAuth();
-        window.location.href = "/login";
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
+        window.location.href = "/";
         return Promise.reject(error);
       }
 
@@ -103,7 +104,8 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         clearAuth();
-        window.location.href = "/login";
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
+        window.location.href = "/";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

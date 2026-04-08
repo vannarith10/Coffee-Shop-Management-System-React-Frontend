@@ -194,7 +194,7 @@ export function getUser(): LoginResponse["user"] | null {
 
 export function logout() {
   clearAuth();
-  window.location.href = "/login";
+  window.location.href = "/";
 }
 
 

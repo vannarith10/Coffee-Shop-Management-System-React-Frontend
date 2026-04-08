@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./components/Login";
+import MenuPage from "./pages/MenuPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import CashierPOS from "./pages/CashierPOS";
 import BaristaKitchen from "./pages/BaristaDashboard";
@@ -47,19 +47,20 @@ function ProtectedRoute({
   return <>{children}</>;
 }
 
-// Auto-redirect based on role
-function RoleRedirect() {
+// Root route: authenticated → role dashboard, guest → public menu
+function RootRoute() {
   const role = getUserRole();
 
+  if (!isSessionAlive()) {
+    // Public guest — show the menu page
+    return <MenuPage />;
+  }
+
   switch (role) {
-    case "ADMIN":
-      return <Navigate to="/admin" replace />;
-    case "CASHIER":
-      return <Navigate to="/cashier" replace />;
-    case "BARISTA":
-      return <Navigate to="/barista" replace />;
-    default:
-      return <Navigate to="/login" replace />;
+    case "ADMIN":   return <Navigate to="/admin"   replace />;
+    case "CASHIER": return <Navigate to="/cashier" replace />;
+    case "BARISTA": return <Navigate to="/barista" replace />;
+    default:        return <MenuPage />;
   }
 }
 
@@ -67,12 +68,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        {/* /login is gone — redirect anyone visiting it to the menu */}
+        <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
-        
-        {/* Auto-redirect root to role-specific page */}
-        <Route path="/" element={<RoleRedirect />} />
-        
+
+        {/* Root: guests see the public menu, staff get role-redirected */}
+        <Route path="/" element={<RootRoute />} />
+
         {/* Admin Routes */}
         <Route
           path="/admin/*"
@@ -82,7 +84,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Cashier Routes */}
         <Route
           path="/cashier/*"
@@ -92,7 +94,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Barista Routes */}
         <Route
           path="/barista/*"
