@@ -1,4 +1,4 @@
-// src/components/pos/CurrencySelector.tsx
+// src/src/components/cashier/checkout/CurrencySelector.tsx
 
 interface Props {
   currency: "USD" | "KHR";

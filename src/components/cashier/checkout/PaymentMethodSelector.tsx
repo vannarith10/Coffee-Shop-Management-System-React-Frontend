@@ -1,4 +1,4 @@
-// src/components/pos/PaymentMethodSelector.tsx
+// src/src/components/cashier/checkout/PaymentMethodSelector.tsx
 
 interface Props {
   paymentMethod: "CASH" | "QR";

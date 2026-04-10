@@ -1,6 +1,6 @@
-// src/components/pos/CartSidebar.tsx
+// src/src/components/cashier/cart/CartSidebar.tsx
 import React from "react";
-import { CartItem, CartSidebarProps } from "../../types/pos";
+import { CartItem, CartSidebarProps } from "../../../types/pos";
 import { CartItemRow } from "./CartItem";
 import { CartSummary } from "./CartSummary";
 

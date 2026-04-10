@@ -1,4 +1,4 @@
-// src/components/pos/PlaceOrderModal.tsx
+// src/src/components/cashier/checkout/PlaceOrderModal.tsx
 
 import React, { useState } from "react";
 import type { CartItem } from "@/types/pos";

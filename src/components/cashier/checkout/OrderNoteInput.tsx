@@ -1,4 +1,4 @@
-// src/components/pos/OrderNoteInput.tsx
+// src/src/components/cashier/checkout/OrderNoteInput.tsx
 
 interface Props {
   note: string;

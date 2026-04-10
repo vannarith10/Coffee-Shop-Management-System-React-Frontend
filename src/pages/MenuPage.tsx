@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { usePublicMenu } from "../hooks/usePublicMenu";
 import { getUser, getUserRole, logout } from "../services/authService";
 import LoginModal from "../components/LoginModal";
-import { TypeFilter } from "../components/pos/TypeFilter";
-import { NameFilter } from "../components/pos/NameFilter";
-import { ProductGrid } from "../components/pos/ProductGrid";
+import { TypeFilter } from "../components/cashier/products/TypeFilter";
+import { NameFilter } from "../components/cashier/products/NameFilter";
+import { ProductGrid } from "../components/cashier/products/ProductGrid";
 
 
 // ─── Main MenuPage ────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import React from "react";
-import { CartItemProps } from "../../types/pos";
+import { CartItemProps } from "../../../types/pos";
 
 
 const glassListItem = (isOutOfStock:boolean|null, isDrink:boolean) => `

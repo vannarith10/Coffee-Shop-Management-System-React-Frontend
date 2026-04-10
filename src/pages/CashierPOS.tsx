@@ -6,19 +6,19 @@ import { useProducts } from "../hooks/useProducts";
 import { useCart } from "../hooks/useCart";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { ErrorScreen } from "../components/ErrorScreen";
-import { Header } from "../components/pos/common/Header";
-import { SearchBar } from "../components/pos/common/SearchBar";
-import { ProductGrid } from "../components/pos/ProductGrid";
-import { CartSidebar } from "../components/pos/CartSidebar";
-import { NameFilter } from "../components/pos/NameFilter";
-import { TypeFilter } from "../components/pos/TypeFilter";
+import { Header } from "../components/cashier/common/Header";
+import { SearchBar } from "../components/cashier/common/SearchBar";
+import { ProductGrid } from "../components/cashier/products/ProductGrid";
+import { CartSidebar } from "../components/cashier/cart/CartSidebar";
+import { NameFilter } from "../components/cashier/products/NameFilter";
+import { TypeFilter } from "../components/cashier/products/TypeFilter";
 import {RefreshLoadingScreen} from "../components/LoadingScreen"
 import { createOrder, confirmOrder, } from "../services/orderService";
 import type { CreateOrderRequest, CreatedOrder, OrderFlowState } from "../types/order";
-import { ConfirmationScreen } from "../components/pos/ConfirmationScreen";
-// import { PlaceOrderModal } from "../components/pos/PlaceOrderModal";
-import PlaceOrderModal from "../components/pos/PlaceOrderModal";
-import NoProductFound from "../components/pos/NoProductFound";
+import { ConfirmationScreen } from "../components/cashier/checkout/ConfirmationScreen";
+// import { PlaceOrderModal } from "../components/cashier/checkout/PlaceOrderModal";
+import PlaceOrderModal from "../components/cashier/checkout/PlaceOrderModal";
+import NoProductFound from "../components/cashier/products/NoProductFound";
 
 
 

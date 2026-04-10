@@ -1,4 +1,4 @@
-// src/components/pos/ConfirmationScreen.tsx
+// src/src/components/cashier/checkout/ConfirmationScreen.tsx
 
 import React, { useEffect } from "react";
 import type { CartItem } from "@/types/pos";

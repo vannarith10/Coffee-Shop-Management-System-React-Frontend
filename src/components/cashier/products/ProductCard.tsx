@@ -1,7 +1,7 @@
 
-//src/components/pos/ProductCard.tsx
+// src/src/components/cashier/products/ProductCard.tsx
 import React from "react";
-import { ProductCardProps } from "../../types/pos";
+import { ProductCardProps } from "../../../types/pos";
 
 const glassCard = (isDrink:boolean, inStock:boolean|null) => `
   relative flex flex-col

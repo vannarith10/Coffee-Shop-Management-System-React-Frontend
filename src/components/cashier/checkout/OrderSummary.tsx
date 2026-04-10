@@ -1,4 +1,4 @@
-// src/components/pos/OrderSummary.tsx
+// src/src/components/cashier/checkout/OrderSummary.tsx
 
 interface Props {
   totalAmount: number;
