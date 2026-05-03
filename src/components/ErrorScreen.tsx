@@ -35,6 +35,7 @@
 // }
 // src/components/ErrorScreen.tsx - OPTIONAL enhancement
 import { BackendError } from "../types";
+import { clearAuth } from "../services/authService";
 
 interface ErrorScreenProps {
   error: BackendError;
@@ -49,10 +50,14 @@ export function ErrorScreen({
 }: ErrorScreenProps) {
   const isAuthError = error.status === 401;
 
-  // If it's auth error, show login button instead of retry
+  // If it's auth error, clear tokens and go to the menu page with login modal open
   const handleAction = () => {
     if (isAuthError) {
-      window.location.href = '/login';
+      // Clear tokens so RootRoute sees the user as a guest (not redirected back to /cashier etc.)
+      clearAuth();
+      // Signal MenuPage to open the LoginModal immediately on mount
+      sessionStorage.setItem("open-login-modal", "1");
+      window.location.href = "/";
     } else if (onRetry) {
       onRetry();
     }

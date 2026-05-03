@@ -43,6 +43,14 @@ export default function MenuPage() {
     return () => observer.disconnect();
   }, [hasMore, loadingMore, fetchNextPage]);
 
+  // Open login modal immediately if redirected from ErrorScreen ("Go to Login" button)
+  useEffect(() => {
+    if (sessionStorage.getItem("open-login-modal") === "1") {
+      sessionStorage.removeItem("open-login-modal");
+      setShowLogin(true);
+    }
+  }, []);
+
   // Listen for auth:session-expired event (fired by api.ts interceptor)
   useEffect(() => {
     const handler = () => setShowLogin(true);
