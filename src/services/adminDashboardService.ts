@@ -1,6 +1,11 @@
 // services/adminDashboardService.ts
 import api from "./api";
 import type { TopProductsRange, TopSellingProductsResponse, ProductsStatusesResponse } from "../components/admin/tabs/dashboard/types";
+import type {
+  StaffProfilesResponse,
+  CreateEmployeeRequest,
+  CreateEmployeeResponse,
+} from "../components/admin/tabs/staff/types";
 
 export interface MetricData {
   value: number;
@@ -51,6 +56,26 @@ export const dashboardService = {
   ): Promise<ProductsStatusesResponse> {
     const response = await api.get<ProductsStatusesResponse>(
       `/api/v1/admin-dashboard/products-statuses?page=${page}&size=${size}`,
+    );
+    return response.data;
+  },
+
+  async getStaffProfiles(
+    page: number = 1,
+    size: number = 10,
+  ): Promise<StaffProfilesResponse> {
+    const response = await api.get<StaffProfilesResponse>(
+      `/api/v1/admin-dashboard/staff-profiles?page=${page}&size=${size}`,
+    );
+    return response.data;
+  },
+
+  async createEmployee(
+    payload: CreateEmployeeRequest,
+  ): Promise<CreateEmployeeResponse> {
+    const response = await api.post<CreateEmployeeResponse>(
+      '/api/v1/admin-dashboard/create-employee-account',
+      payload,
     );
     return response.data;
   },

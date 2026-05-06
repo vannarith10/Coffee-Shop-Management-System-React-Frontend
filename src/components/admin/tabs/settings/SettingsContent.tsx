@@ -1,0 +1,453 @@
+import React, { useState, useRef } from 'react';
+
+// ─── Types ───────────────────────────────────────────────────────────
+
+interface ThemeOption {
+  icon: string;
+  label: string;
+  value: string;
+}
+
+// ─── Data ────────────────────────────────────────────────────────────
+
+const regions = [
+  { value: '', label: 'Select your region', disabled: true },
+  { value: 'southeast_asia', label: 'Southeast Asia' },
+  { value: 'north_america', label: 'North America' },
+  { value: 'europe', label: 'Europe' },
+  { value: 'others', label: 'Others' },
+];
+
+const themeOptions: ThemeOption[] = [
+  { icon: 'settings_brightness', label: 'System', value: 'system' },
+  { icon: 'light_mode', label: 'Light', value: 'light' },
+  { icon: 'dark_mode', label: 'Dark', value: 'dark' },
+];
+
+const languages = [
+  { value: 'en', label: 'English (United States)' },
+  { value: 'km', label: 'Khmer (ភាសាខ្មែរ)' },
+];
+
+const printerMethods = ['IP Network', 'Bluetooth'];
+
+// ─── Component ───────────────────────────────────────────────────────
+
+export default function SettingsContent() {
+  const [activeTab, setActiveTab] = useState('Shop Profile');
+  const [showModal, setShowModal] = useState(false);
+
+  // Shop Profile State
+  const [shopName, setShopName] = useState('Morning Roast Coffee Co.');
+  const [contact, setContact] = useState('+1 (555) 123-4567');
+  const [address, setAddress] = useState('123 Espresso Way, Downtown District, Seattle, WA 98101');
+  const [region, setRegion] = useState('');
+  const [about, setAbout] = useState('');
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // App Preferences State
+  const [selectedTheme, setSelectedTheme] = useState('system');
+  const [language, setLanguage] = useState('en');
+  const [printerMethod, setPrinterMethod] = useState('IP Network');
+  const [printerIP, setPrinterIP] = useState('192.168.1.45');
+  const [autoPrint, setAutoPrint] = useState(true);
+
+  const [lowStock, setLowStock] = useState({
+    enabled: true,
+    push: true,
+    email: true,
+    sound: false,
+  });
+
+  const [newOrders, setNewOrders] = useState({
+    enabled: true,
+    push: true,
+    email: false,
+    sound: true,
+  });
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleConfirm = () => {
+    setShowModal(false);
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+  };
+
+  return (
+    <>
+      <style>{`
+        .tab-active {
+          color: #14b83d;
+          border-bottom: 2px solid #14b83d;
+        }
+      `}</style>
+
+      {/* ─── Save Confirmation Modal ────────────────────────────── */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#0d1a10]/80 backdrop-blur-md"></div>
+          <div className="relative w-full max-w-md bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-2xl shadow-2xl p-8 text-center">
+            <div className="w-16 h-16 bg-[#14b83d]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-[#14b83d] text-4xl">save_as</span>
+            </div>
+            <h2 className="text-2xl font-black mb-3 dark:text-white">Save Changes?</h2>
+            <p className="text-slate-600 dark:text-[#9db8a4] text-base mb-8 leading-relaxed">
+              Are you sure you want to apply these system and interface updates? Some changes may require a page refresh.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirm}
+                className="w-full py-4 bg-[#16a34a] hover:bg-[#16a34a]/90 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-[#16a34a]/20"
+              >
+                Confirm & Save
+              </button>
+              <button
+                onClick={handleCancel}
+                className="w-full py-4 bg-slate-100 dark:bg-[#233d28] hover:bg-slate-200 dark:hover:bg-[#2c4a32] text-slate-700 dark:text-slate-300 rounded-xl font-bold text-lg transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-x-hidden">
+        {/* Header */}
+        <header className="p-8 pb-0">
+          <div className="flex flex-wrap justify-between items-end gap-4 mb-6">
+            <div className="flex min-w-72 flex-col gap-1">
+              <h2 className="text-3xl font-black tracking-tight dark:text-white">System Settings</h2>
+              <p className="text-slate-500 dark:text-[#9db8a4] text-base">
+                Customize your interface and system behavior.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowModal(true)}
+                className="px-6 py-2 bg-[#14b83d] text-white rounded-lg text-sm font-bold shadow-md hover:bg-opacity-90 transition-all"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-slate-200 dark:border-[#29382d]">
+            <button
+              onClick={() => setActiveTab('Shop Profile')}
+              className={
+                'px-6 py-3 text-sm font-medium transition-colors ' +
+                (activeTab === 'Shop Profile'
+                  ? 'tab-active font-bold'
+                  : 'text-slate-500 dark:text-[#9db8a4] hover:text-[#14b83d]')
+              }
+            >
+              Shop Profile
+            </button>
+            <button
+              onClick={() => setActiveTab('App Preferences')}
+              className={
+                'px-6 py-3 text-sm font-medium transition-colors ' +
+                (activeTab === 'App Preferences'
+                  ? 'tab-active font-bold'
+                  : 'text-slate-500 dark:text-[#9db8a4] hover:text-[#14b83d]')
+              }
+            >
+              App Preferences
+            </button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="p-8">
+          {activeTab === 'Shop Profile' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column: Form */}
+              <div className="lg:col-span-2">
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm min-h-[600px] flex flex-col">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#14b83d]">store</span>
+                    General Information
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+                    {/* Shop Name */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Shop Name</label>
+                      <input
+                        type="text"
+                        value={shopName}
+                        onChange={(e) => setShopName(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all"
+                      />
+                    </div>
+
+                    {/* Contact Number */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Contact Number</label>
+                      <input
+                        type="tel"
+                        value={contact}
+                        onChange={(e) => setContact(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all"
+                      />
+                    </div>
+
+                    {/* Address */}
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Address</label>
+                      <textarea
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        rows={3}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-none"
+                      />
+                    </div>
+
+                    {/* Region */}
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Shop Region</label>
+                      <select
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all appearance-none cursor-pointer"
+                      >
+                        {regions.map((r) => (
+                          <option key={r.value} value={r.value} disabled={r.disabled}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* About */}
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">About the Shop</label>
+                      <textarea
+                        value={about}
+                        onChange={(e) => setAbout(e.target.value)}
+                        placeholder="Brief description of your coffee shop's mission or history..."
+                        rows={8}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-none"
+                      />
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              {/* Right Column: Branding + Status */}
+              <div className="space-y-6">
+                {/* Shop Branding */}
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
+                  <h3 className="text-lg font-bold mb-4">Shop Branding</h3>
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="relative group">
+                      <div className="w-32 h-32 rounded-2xl bg-[#7c2d12] flex items-center justify-center text-white text-5xl font-black shadow-lg overflow-hidden">
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="Shop Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined text-6xl">coffee</span>
+                        )}
+                      </div>
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#14b83d] text-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                      >
+                        <span className="material-symbols-outlined text-xl">edit</span>
+                      </button>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold">Shop Logo</p>
+                      <p className="text-xs text-slate-500 dark:text-[#9db8a4] mt-1">Recommended: 512x512px (PNG or SVG)</p>
+                    </div>
+                    <div className="w-full space-y-3">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={handleLogoChange} 
+                      />
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full py-2.5 px-4 border-2 border-dashed border-slate-200 dark:border-[#3c5342] rounded-lg text-xs font-bold text-slate-500 dark:text-[#9db8a4] hover:border-[#14b83d] hover:text-[#14b83d] transition-all"
+                      >
+                        Upload New Logo
+                      </button>
+                      <button 
+                        onClick={() => setLogoPreview(null)}
+                        className="w-full py-2 text-xs font-bold text-red-500 hover:underline"
+                      >
+                        Remove Current Logo
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                {/* System Status */}
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
+                  <h3 className="text-sm font-bold mb-3">System Status</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#14b83d]"></div>
+                    <span className="text-sm font-medium">All systems operational</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-[#9db8a4] mt-4 uppercase font-bold tracking-widest">
+                    Version 2.4.0-CoffeeBean
+                  </p>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'App Preferences' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column */}
+              <div className="space-y-6">
+                {/* UI/UX Customization */}
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#14b83d]">palette</span>
+                    UI/UX Customization
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Theme Selection */}
+                    <div className="space-y-4">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Theme Selection</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {themeOptions.map((theme) => {
+                          const isActive = selectedTheme === theme.value;
+                          return (
+                            <button
+                              key={theme.value}
+                              onClick={() => setSelectedTheme(theme.value)}
+                              className={
+                                'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ' +
+                                (isActive
+                                  ? 'border-[#14b83d] bg-[#14b83d]/5 text-[#14b83d]'
+                                  : 'border-slate-100 dark:border-[#29382d] hover:border-slate-200 dark:hover:border-[#3c5342]')
+                              }
+                            >
+                              <span className="material-symbols-outlined">{theme.icon}</span>
+                              <span className="text-xs font-bold">{theme.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Display Language */}
+                    <div className="space-y-4">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Display Language</label>
+                      <select
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-3 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all appearance-none cursor-pointer"
+                      >
+                        {languages.map((lang) => (
+                          <option key={lang.value} value={lang.value}>{lang.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-slate-500 dark:text-[#9db8a4]">
+                        Changing language will update the entire interface and receipt templates.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* App Information */}
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
+                  <h3 className="text-sm font-bold mb-4">App Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500 dark:text-[#9db8a4]">Stable Version</span>
+                      <span className="font-bold">v2.4.0-CoffeeBean</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500 dark:text-[#9db8a4]">Last Updated</span>
+                      <span className="font-bold">Oct 12, 2023</span>
+                    </div>
+                    <div className="flex items-center gap-3 pt-4">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#14b83d] animate-pulse"></div>
+                      <span className="text-sm font-medium">System fully optimized</span>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              {/* Right Column */}
+              <div className="h-full">
+                {/* Printer Settings */}
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm h-full flex flex-col">
+                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#14b83d]">print</span>
+                    Printer Settings
+                  </h3>
+                  <div className="space-y-4 flex flex-col flex-grow">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Connection Method</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {printerMethods.map((method) => (
+                          <button
+                            key={method}
+                            onClick={() => setPrinterMethod(method)}
+                            className={
+                              'py-2 text-xs font-bold rounded-lg border-2 transition-all ' +
+                              (printerMethod === method
+                                ? 'border-[#14b83d] bg-[#14b83d]/5 text-[#14b83d]'
+                                : 'border-slate-100 dark:border-[#29382d] text-slate-500 dark:text-[#9db8a4]')
+                            }
+                          >
+                            {method}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Printer IP Address</label>
+                      <input
+                        type="text"
+                        value={printerIP}
+                        onChange={(e) => setPrinterIP(e.target.value)}
+                        placeholder="192.168.1.100"
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 dark:border-[#29382d] mt-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-xs font-bold text-slate-500 dark:text-[#9db8a4]">Auto-print Receipts</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            checked={autoPrint}
+                            onChange={(e) => setAutoPrint(e.target.checked)}
+                            className="sr-only peer"
+                            type="checkbox"
+                          />
+                          <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-[#14b83d]"></div>
+                        </label>
+                      </div>
+                      <button className="w-full py-2.5 bg-slate-100 dark:bg-[#233d28] text-slate-900 dark:text-white rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-[#2c4a32] transition-colors">
+                        Test Print Connection
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}

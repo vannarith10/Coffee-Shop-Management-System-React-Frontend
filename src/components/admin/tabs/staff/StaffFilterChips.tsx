@@ -1,4 +1,4 @@
-type FilterOption = 'ALL' | 'BARISTA' | 'CASHIER' | 'ADMIN';
+type FilterOption = 'ALL' | 'STAFF' | 'BARISTA' | 'CASHIER' | 'ADMIN';
 
 interface FilterChipProps {
   label: string;
@@ -37,10 +37,11 @@ interface StaffFilterChipsProps {
 
 export default function StaffFilterChips({ active, counts, onChange }: StaffFilterChipsProps) {
   const options: { label: string; value: FilterOption }[] = [
-    { label: 'All', value: 'ALL' },
+    { label: 'All',      value: 'ALL' },
+    { label: 'Staff',    value: 'STAFF' },
     { label: 'Baristas', value: 'BARISTA' },
     { label: 'Cashiers', value: 'CASHIER' },
-    { label: 'Admin', value: 'ADMIN' },
+    { label: 'Admin',    value: 'ADMIN' },
   ];
 
   return (

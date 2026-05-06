@@ -12,8 +12,10 @@ import Sidebar from "../components/admin/shared/Sidebar";
 import DashboardHeader from "../components/admin/shared/DashboardHeader";
 import ErrorBanner from "../components/admin/shared/ErrorBanner";
 import DashboardContent from "../components/admin/tabs/dashboard/DashboardContent";
-import PlaceholderContent from "../components/admin/shared/PlaceholderContent";
 import StaffContent from "../components/admin/tabs/staff/StaffContent";
+import ProductsContent from "../components/admin/tabs/products/ProductsContent";
+import ReportsContent from "../components/admin/tabs/reports/ReportsContent";
+import SettingsContent from "../components/admin/tabs/settings/SettingsContent";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -106,34 +108,12 @@ export default function AdminDashboard() {
         );
       case "staff":
         return <StaffContent />;
-      case "inventory":
-        return (
-          <PlaceholderContent
-            title="Inventory Management"
-            description="Track stock levels, suppliers, and orders..."
-          />
-        );
       case "products":
-        return (
-          <PlaceholderContent
-            title="Product Management"
-            description="Manage menu items, pricing, and categories..."
-          />
-        );
+        return <ProductsContent />;
       case "reports":
-        return (
-          <PlaceholderContent
-            title="Sales Reports"
-            description="View detailed analytics and export data..."
-          />
-        );
+        return <ReportsContent />;
       case "settings":
-        return (
-          <PlaceholderContent
-            title="System Settings"
-            description="Configure POS, notifications, and integrations..."
-          />
-        );
+        return <SettingsContent />;
       default:
         return (
           <DashboardContent
@@ -151,18 +131,18 @@ export default function AdminDashboard() {
       <div className="flex h-screen overflow-hidden bg-[#f6f8f6] dark:bg-[#112115] font-['Inter',sans-serif] text-slate-900 dark:text-slate-100 antialiased">
         <Sidebar
           activeTab={activeTab}
-          isDarkMode={isDarkMode}
           onTabChange={setActiveTab}
-          onToggleDarkMode={toggleDarkMode}
           onLogout={handleLogout}
         />
 
         <main className="flex-1 overflow-y-auto scroll-smooth">
-          <DashboardHeader
-            activeTab={activeTab}
-            loading={loading}
-            onRefresh={fetchDashboardData}
-          />
+          {!["staff", "products", "reports", "settings"].includes(activeTab) && (
+            <DashboardHeader
+              activeTab={activeTab}
+              loading={loading}
+              onRefresh={fetchDashboardData}
+            />
+          )}
 
           {error && <ErrorBanner error={error} onRetry={fetchDashboardData} />}
 

@@ -2,17 +2,13 @@ import { NAV_ITEMS } from "./constants";
 
 interface SidebarProps {
   activeTab: string;
-  isDarkMode: boolean;
   onTabChange: (tab: string) => void;
-  onToggleDarkMode: () => void;
   onLogout: () => void;
 }
 
 export default function Sidebar({
   activeTab,
-  isDarkMode,
   onTabChange,
-  onToggleDarkMode,
   onLogout,
 }: SidebarProps) {
   return (
@@ -48,15 +44,6 @@ export default function Sidebar({
 
       {/* Bottom Actions */}
       <div className="p-4 mt-auto space-y-2">
-        <button
-          onClick={onToggleDarkMode}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-[#1a2e1e] hover:bg-slate-200 dark:hover:bg-[#233d28] rounded-lg transition-colors text-sm font-bold"
-        >
-          <span className="material-symbols-outlined text-sm">
-            {isDarkMode ? "light_mode" : "dark_mode"}
-          </span>
-          <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
-        </button>
         <button
           onClick={onLogout}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-[#1a2e1e] hover:bg-slate-200 dark:hover:bg-[#233d28] rounded-lg transition-colors text-sm font-bold text-red-600 dark:text-red-400"

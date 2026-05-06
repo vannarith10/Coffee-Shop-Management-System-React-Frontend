@@ -24,6 +24,7 @@ export default function AccountSettingsFields({
             onChange={onChange}
             className={INPUT_CLASS + ' appearance-none'}
           >
+            <option value="staff">Staff</option>
             <option value="barista">Barista</option>
             <option value="cashier">Cashier</option>
             <option value="admin">Admin</option>
@@ -39,7 +40,7 @@ export default function AccountSettingsFields({
           >
             <option value="morning">Morning</option>
             <option value="afternoon">Afternoon</option>
-            <option value="evening">Evening</option>
+            <option value="full_day">Full Day</option>
           </select>
         </div>
       </div>

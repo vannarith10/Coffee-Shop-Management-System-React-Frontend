@@ -177,10 +177,30 @@ export function clearAuth() {
 
 export function isRefreshTokenExpired(): boolean {
   const expiresAt = localStorage.getItem("refreshExpiresAt");
-  if (!expiresAt) return true;
+  if (!expiresAt) {
+    // If we have a token but no expiry, assume it might be valid 
+    // and let the API response determine the truth.
+    return !getRefreshToken(); 
+  }
   
-  const expiryTime = new Date(expiresAt).getTime();
-  return expiryTime < (Date.now() + 5000); // 5s buffer
+  try {
+    // Ensure the date is parsed correctly. If it lacks a timezone, 
+    // browsers treat it as local time, which causes bugs if the server sends UTC.
+    // We add a 'Z' if it looks like an ISO string without timezone.
+    let dateStr = expiresAt;
+    if (dateStr.includes('T') && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+      dateStr += 'Z';
+    }
+    
+    const expiryTime = new Date(dateStr).getTime();
+    
+    // Check if valid date
+    if (isNaN(expiryTime)) return false; 
+
+    return expiryTime < (Date.now() + 5000); // 5s buffer
+  } catch {
+    return false; // Treat as not expired on parse error
+  }
 }
 
 

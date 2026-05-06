@@ -1,13 +1,14 @@
-import { StaffMember } from './types';
+import { StaffAPI } from './types';
 
-const ROLE_STYLES: Record<StaffMember['role'], string> = {
+const ROLE_STYLES: Record<StaffAPI['role'], string> = {
+  STAFF:   'bg-slate-100 text-slate-600 dark:bg-slate-700/30 dark:text-slate-300',
   BARISTA: 'bg-primary/10 text-primary',
   CASHIER: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
   ADMIN: 'bg-coffee-accent/10 text-coffee-accent dark:text-[#d97706]',
 };
 
 interface StaffRoleBadgeProps {
-  role: StaffMember['role'];
+  role: StaffAPI['role'];
 }
 
 export default function StaffRoleBadge({ role }: StaffRoleBadgeProps) {

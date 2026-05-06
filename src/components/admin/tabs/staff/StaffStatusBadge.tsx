@@ -1,19 +1,19 @@
-import { StaffMember } from './types';
+import { StaffAPI } from './types';
 
-const STATUS_STYLES: Record<StaffMember['status'], string> = {
+const STATUS_STYLES: Record<StaffAPI['status'], string> = {
   ACTIVE: 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400',
   ON_LEAVE: 'bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400',
   INACTIVE: 'bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400',
 };
 
-const DOT_COLOR: Record<StaffMember['status'], string> = {
+const DOT_COLOR: Record<StaffAPI['status'], string> = {
   ACTIVE: 'bg-green-500',
   ON_LEAVE: 'bg-orange-500',
   INACTIVE: 'bg-slate-500',
 };
 
 interface StaffStatusBadgeProps {
-  status: StaffMember['status'];
+  status: StaffAPI['status'];
 }
 
 export default function StaffStatusBadge({ status }: StaffStatusBadgeProps) {

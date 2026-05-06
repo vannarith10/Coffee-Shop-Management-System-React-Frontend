@@ -69,8 +69,9 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       const refreshToken = getRefreshToken();
-
-      if (!refreshToken || isRefreshTokenExpired()) {
+      
+      // If no refresh token, we can't do anything - log out
+      if (!refreshToken) {
         isRefreshing = false;
         clearAuth();
         window.dispatchEvent(new CustomEvent("auth:session-expired"));
