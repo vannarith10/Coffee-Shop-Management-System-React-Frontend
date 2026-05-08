@@ -9,8 +9,10 @@ import { dashboardService, AllProductsResponse } from '../../../../services/admi
 interface Product {
   id: string;
   name: string;
-  category: string;
+  categoryName: string;
+  categoryType: string;
   price: number;
+  costPrice: number;
   description?: string;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
   image: string;
@@ -69,8 +71,10 @@ export default function ProductsContent() {
         const mappedProducts: Product[] = response.product_items.map(item => ({
           id: item.id,
           name: item.name,
-          category: item.category_name,
+          categoryName: item.category_name,
+          categoryType: item.category_type,
           price: item.price,
+          costPrice: item.cost_price,
           description: item.description || '',
           status: mapStockStatus(item.stock_status),
           image: item.image_url
@@ -280,8 +284,11 @@ export default function ProductsContent() {
                           <span className="font-bold text-[#f6f8f6]">{product.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-[#bccbb6]">
-                        {product.category}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-[#14b83d] uppercase tracking-[0.1em] leading-none mb-1">{product.categoryType}</span>
+                          <span className="text-sm font-bold text-[#bccbb6]">{product.categoryName}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-center font-mono text-[#14b83d]">
                         ${product.price.toFixed(2)}
@@ -342,6 +349,9 @@ export default function ProductsContent() {
         isOpen={!!editingProduct}
         onClose={() => setEditingProduct(null)}
         product={editingProduct}
+        onSuccess={() => {
+          fetchAllProducts();
+        }}
       />
     </>
   );

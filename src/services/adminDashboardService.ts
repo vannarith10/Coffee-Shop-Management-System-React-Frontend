@@ -122,4 +122,26 @@ export const dashboardService = {
       `/api/v1/admin-dashboard/product/${productId}/stock-status?status=${status}`,
     );
   },
+
+  async updateProduct(productId: string, payload: any): Promise<void> {
+    // If payload contains an image (File), use FormData. Otherwise JSON is fine for PATCH.
+    // However, usually we send everything as FormData if image is involved.
+    let body = payload;
+    let headers = {};
+    
+    if (payload.image instanceof File) {
+      body = new FormData();
+      Object.keys(payload).forEach(key => {
+        body.append(key, payload[key]);
+      });
+      headers = { 'Content-Type': 'multipart/form-data' };
+    }
+
+    await api.patch(`/api/v1/admin-dashboard/product/${productId}`, body, { headers });
+  },
+
+  async getCategories(): Promise<string[]> {
+    const response = await api.get<string[]>('/api/v1/admin-dashboard/get-all-categories');
+    return response.data;
+  },
 };
