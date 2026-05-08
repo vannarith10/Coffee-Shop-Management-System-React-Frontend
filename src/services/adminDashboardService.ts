@@ -113,4 +113,13 @@ export const dashboardService = {
     );
     return response.data;
   },
+
+  async updateProductStockStatus(
+    productId: string,
+    status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK',
+  ): Promise<void> {
+    await api.put(
+      `/api/v1/admin-dashboard/product/${productId}/stock-status?status=${status}`,
+    );
+  },
 };

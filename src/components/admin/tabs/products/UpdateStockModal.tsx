@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { dashboardService } from '../../../../services/adminDashboardService';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
 type StatusType = 'NORMAL' | 'LOW' | 'OUT';
+
+interface Product {
+  id: string;
+  name: string;
+  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+}
 
 interface StatusOption {
   value: StatusType;
@@ -17,6 +24,8 @@ interface StatusOption {
 interface UpdateStockModalProps {
   isOpen: boolean;
   onClose: () => void;
+  product: Product | null;
+  onUpdate: () => void;
 }
 
 // ─── Data ────────────────────────────────────────────────────────────
@@ -51,10 +60,51 @@ const statusOptions: StatusOption[] = [
   },
 ];
 
-export default function UpdateStockModal({ isOpen, onClose }: UpdateStockModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState<StatusType>('NORMAL');
+const mapFromProductStatus = (status: Product['status']): StatusType => {
+  switch (status) {
+    case 'In Stock': return 'NORMAL';
+    case 'Low Stock': return 'LOW';
+    case 'Out of Stock': return 'OUT';
+    default: return 'NORMAL';
+  }
+};
 
-  if (!isOpen) return null;
+const mapToApiStatus = (status: StatusType): 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' => {
+  switch (status) {
+    case 'NORMAL': return 'IN_STOCK';
+    case 'LOW': return 'LOW_STOCK';
+    case 'OUT': return 'OUT_OF_STOCK';
+  }
+};
+
+export default function UpdateStockModal({ isOpen, onClose, product, onUpdate }: UpdateStockModalProps) {
+  const [selectedStatus, setSelectedStatus] = useState<StatusType>('NORMAL');
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    if (product) {
+      setSelectedStatus(mapFromProductStatus(product.status));
+    }
+  }, [product]);
+
+  const handleUpdate = async () => {
+    if (!product || isUpdating) return;
+
+    setIsUpdating(true);
+    try {
+      const apiStatus = mapToApiStatus(selectedStatus);
+      await dashboardService.updateProductStockStatus(product.id, apiStatus);
+      onUpdate();
+    } catch (error: any) {
+      console.error("Failed to update stock status:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Unknown error";
+      alert(`Failed to update stock status: ${errorMessage}`);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  if (!isOpen || !product) return null;
 
   return (
     <>
@@ -76,7 +126,7 @@ export default function UpdateStockModal({ isOpen, onClose }: UpdateStockModalPr
               <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
             </div>
             <h2 className="text-2xl font-black tracking-tight text-[#f6f8f6] mb-1">Update Stock Status</h2>
-            <p className="text-[#bccbb6] text-sm font-medium">Dark Roast Espresso Blend (500g)</p>
+            <p className="text-[#bccbb6] text-sm font-medium">{product.name}</p>
           </div>
 
           {/* Status Options */}
@@ -86,12 +136,14 @@ export default function UpdateStockModal({ isOpen, onClose }: UpdateStockModalPr
               return (
                 <button
                   key={option.value}
+                  disabled={isUpdating}
                   onClick={() => setSelectedStatus(option.value)}
                   className={
                     'w-full text-left p-4 rounded-2xl border-2 flex items-center gap-4 transition-all group ' +
                     (isSelected
                       ? 'border-[#14b83d] bg-[#14b83d]/10 hover:bg-[#14b83d]/20'
-                      : 'border-white/5 bg-[#1c3622] hover:bg-[#224128]')
+                      : 'border-white/5 bg-[#1c3622] hover:bg-[#224128]') +
+                    (isUpdating ? ' opacity-50 cursor-not-allowed' : '')
                   }
                 >
                   <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${option.iconBg} flex items-center justify-center ${option.iconText}`}>
@@ -116,15 +168,24 @@ export default function UpdateStockModal({ isOpen, onClose }: UpdateStockModalPr
           <div className="px-8 pb-8 pt-4 flex gap-3">
             <button 
               onClick={onClose}
-              className="flex-1 py-4 px-6 rounded-2xl bg-white/5 text-[#bccbb6] font-bold tracking-tight hover:bg-white/10 transition-all"
+              disabled={isUpdating}
+              className="flex-1 py-4 px-6 rounded-2xl bg-white/5 text-[#bccbb6] font-bold tracking-tight hover:bg-white/10 transition-all disabled:opacity-50"
             >
               Cancel
             </button>
             <button 
-              onClick={onClose}
-              className="flex-[2] py-4 px-6 rounded-2xl bg-[#14b83d] text-white font-black tracking-tight hover:scale-[1.02] active:scale-[0.98] transition-all"
+              onClick={handleUpdate}
+              disabled={isUpdating}
+              className="flex-[2] py-4 px-6 rounded-2xl bg-[#14b83d] text-white font-black tracking-tight hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:scale-100"
             >
-              Update Status
+              {isUpdating ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Updating...</span>
+                </>
+              ) : (
+                'Update Status'
+              )}
             </button>
           </div>
         </div>

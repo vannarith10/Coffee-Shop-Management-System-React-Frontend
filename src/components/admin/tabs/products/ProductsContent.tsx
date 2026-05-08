@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import UpdateStockModal from './UpdateStockModal';
 import AddProductModal from './AddProductModal';
 import EditProductModal from './EditProductModal';
-import { dashboardService, AllProductsResponse, ProductItem } from '../../../../services/adminDashboardService';
+import { dashboardService, AllProductsResponse } from '../../../../services/adminDashboardService';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -45,11 +45,12 @@ export default function ProductsContent() {
   const [stats, setStats] = useState({
     total: 0,
     lowStock: 0,
-    outOfStock: 0
+    outOfStock: 0,
+    inStock: 0
   });
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
-  const [isStockModalOpen, setIsStockModalOpen] = useState(false);
+  const [stockUpdatingProduct, setStockUpdatingProduct] = useState<Product | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -62,7 +63,6 @@ export default function ProductsContent() {
       let totalPages = 1;
       const allFetchedProducts: Product[] = [];
 
-      // Loop until all pages are fetched
       while (currentPage <= totalPages) {
         const response: AllProductsResponse = await dashboardService.getAllProducts(currentPage, 10);
         
@@ -77,24 +77,24 @@ export default function ProductsContent() {
         }));
 
         allFetchedProducts.push(...mappedProducts);
-        
-        // Update product list incrementally so user sees data appearing
         setProductList([...allFetchedProducts]);
         
         totalPages = response.pagination.total_pages;
         currentPage++;
       }
 
-      // Update stats based on the full list
-      const lowStock = allFetchedProducts.filter(p => p.status === 'Low Stock').length;
-      const outOfStock = allFetchedProducts.filter(p => p.status === 'Out of Stock').length;
+      const lowStockCount = allFetchedProducts.filter(p => p.status === 'Low Stock').length;
+      const outOfStockCount = allFetchedProducts.filter(p => p.status === 'Out of Stock').length;
+      const inStockCount = allFetchedProducts.filter(p => p.status === 'In Stock').length;
+
       setStats({
         total: allFetchedProducts.length,
-        lowStock,
-        outOfStock
+        lowStock: lowStockCount,
+        outOfStock: outOfStockCount,
+        inStock: inStockCount
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch products:", error);
     } finally {
       setIsLoading(false);
@@ -106,8 +106,18 @@ export default function ProductsContent() {
   }, [fetchAllProducts]);
 
   const filteredProducts = useMemo(() => {
-    if (activeFilter === 'All') return productList;
-    return productList.filter((p) => p.status === activeFilter);
+    let list = [...productList];
+    
+    const statusPriority: Record<Product['status'], number> = {
+      'Out of Stock': 0,
+      'Low Stock': 1,
+      'In Stock': 2,
+    };
+
+    list.sort((a, b) => statusPriority[a.status] - statusPriority[b.status]);
+
+    if (activeFilter === 'All') return list;
+    return list.filter((p) => p.status === activeFilter);
   }, [activeFilter, productList]);
 
   return (
@@ -122,9 +132,7 @@ export default function ProductsContent() {
         }
       `}</style>
 
-      {/* Main Content Wrapper - Removed Sidebar and h-screen constraint */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#112115] text-[#f6f8f6] h-full">
-        {/* Header */}
         <header className="p-8 pb-4 shrink-0">
           <div className="flex flex-wrap justify-between items-end gap-4">
             <div className="flex min-w-72 flex-col gap-1">
@@ -149,8 +157,11 @@ export default function ProductsContent() {
 
         {/* Stats Cards */}
         <section className="px-8 py-4 shrink-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#14b83d]/50">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div 
+              onClick={() => setActiveFilter('All')}
+              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#14b83d]/50 cursor-pointer ${activeFilter === 'All' ? 'ring-2 ring-[#14b83d]' : ''}`}
+            >
               <div className="w-12 h-12 rounded-lg bg-[#14b83d]/10 flex items-center justify-center text-[#14b83d]">
                 <span className="material-symbols-outlined">inventory</span>
               </div>
@@ -162,7 +173,25 @@ export default function ProductsContent() {
               </div>
             </div>
 
-            <div className="bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#ff7189]/50">
+            <div 
+              onClick={() => setActiveFilter('In Stock')}
+              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#14b83d]/50 cursor-pointer ${activeFilter === 'In Stock' ? 'ring-2 ring-[#14b83d]' : ''}`}
+            >
+              <div className="w-12 h-12 rounded-lg bg-[#14b83d]/10 flex items-center justify-center text-[#14b83d]">
+                <span className="material-symbols-outlined">check_circle</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
+                  In Stock
+                </p>
+                <p className="text-3xl font-black text-[#f6f8f6]">{stats.inStock}</p>
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setActiveFilter('Low Stock')}
+              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#ff7189]/50 cursor-pointer ${activeFilter === 'Low Stock' ? 'ring-2 ring-[#ff7189]' : ''}`}
+            >
               <div className="w-12 h-12 rounded-lg bg-[#ff7189]/10 flex items-center justify-center text-[#ff7189]">
                 <span className="material-symbols-outlined">warning</span>
               </div>
@@ -174,7 +203,10 @@ export default function ProductsContent() {
               </div>
             </div>
 
-            <div className="bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#ef4444]/50">
+            <div 
+              onClick={() => setActiveFilter('Out of Stock')}
+              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#ef4444]/50 cursor-pointer ${activeFilter === 'Out of Stock' ? 'ring-2 ring-[#ef4444]' : ''}`}
+            >
               <div className="w-12 h-12 rounded-lg bg-[#ef4444]/20 flex items-center justify-center text-[#ef4444]">
                 <span className="material-symbols-outlined">error_outline</span>
               </div>
@@ -266,7 +298,7 @@ export default function ProductsContent() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button 
-                          onClick={() => setIsStockModalOpen(true)}
+                          onClick={() => setStockUpdatingProduct(product)}
                           className="px-4 py-1.5 bg-[#14b83d] text-white text-xs font-bold rounded shadow-sm hover:brightness-110"
                         >
                           Update Stock
@@ -292,8 +324,13 @@ export default function ProductsContent() {
       </div>
 
       <UpdateStockModal 
-        isOpen={isStockModalOpen} 
-        onClose={() => setIsStockModalOpen(false)} 
+        isOpen={!!stockUpdatingProduct} 
+        onClose={() => setStockUpdatingProduct(null)}
+        product={stockUpdatingProduct}
+        onUpdate={() => {
+          setStockUpdatingProduct(null);
+          fetchAllProducts();
+        }}
       />
 
       <AddProductModal
