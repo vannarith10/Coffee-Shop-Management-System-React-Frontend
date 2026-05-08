@@ -7,6 +7,30 @@ import type {
   CreateEmployeeResponse,
 } from "../components/admin/tabs/staff/types";
 
+export interface ProductItem {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  image_url: string;
+  category_type: string;
+  category_name: string;
+  stock_status: string;
+}
+
+export interface Pagination {
+  page: number;
+  size: number;
+  total_pages: number;
+  total_items: number;
+}
+
+export interface AllProductsResponse {
+  pagination: Pagination;
+  product_items: ProductItem[];
+}
+
+
 export interface MetricData {
   value: number;
   growth_pct: number;
@@ -76,6 +100,16 @@ export const dashboardService = {
     const response = await api.post<CreateEmployeeResponse>(
       '/api/v1/admin-dashboard/create-employee-account',
       payload,
+    );
+    return response.data;
+  },
+
+  async getAllProducts(
+    page: number = 1,
+    size: number = 10,
+  ): Promise<AllProductsResponse> {
+    const response = await api.get<AllProductsResponse>(
+      `/api/v1/admin-dashboard/get-all-products?page=${page}&size=${size}`,
     );
     return response.data;
   },

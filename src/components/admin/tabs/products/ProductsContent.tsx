@@ -1,12 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import UpdateStockModal from './UpdateStockModal';
 import AddProductModal from './AddProductModal';
 import EditProductModal from './EditProductModal';
+import { dashboardService, AllProductsResponse, ProductItem } from '../../../../services/adminDashboardService';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   category: string;
   price: number;
@@ -16,107 +17,6 @@ interface Product {
 }
 
 type FilterType = 'All' | 'In Stock' | 'Low Stock' | 'Out of Stock';
-
-// ─── Data ────────────────────────────────────────────────────────────
-
-const products: Product[] = [
-  {
-    id: 1,
-    name: 'Espresso',
-    category: 'COFFEE',
-    price: 2.50,
-    status: 'In Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSzwW0T-52_IqAheLtAOW87rqwZS9LVb6xnhDKYiD4tLzlos_ks0Da2OZidv-ANyOd_LSQYJ3AxNuSM3JPPokbfXxqmqulPG7-Bl-39tGVJz9byz47ngU37dmh6_SA5ajPT9iO_k5wCRPhj7_DL7RudQExaTc4j-r80XgpNm8-IIoxdxHIQSGMdJ5r2yW62VS86SGRai6Gb2miJzvPFzUKf0LlrvHT_-lyzz7lUtgFy5JyQ7L1leXaJyLFVh-PLZOJsN4uhg1P3DA',
-  },
-  {
-    id: 2,
-    name: 'Flat White',
-    category: 'COFFEE',
-    price: 3.75,
-    status: 'In Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCONTQ6x_UV8T1-CdStbTjp-WiQwY9CDNBvpsL9QIgsQ8ujvPhwxQs_uIfkhaBivVjs1SdVbPF9Cu-E5LMzx7rU0c2ApaFjgnlMWH-wQQwjj797onjBlnqyl01YYC061EE3RP5xbIiMSU4DKXjSMOsU9keimiO2q1FJLl2ylgPrCdyGdwgFSb9zrSSJu6kCRAFjcoQia2vQWEhaTadcr3hGmweCW2FcbK56KzO71hlwB8cpm2wW9iUI1J7e9INoD9XP8v293sg3Yxs',
-  },
-  {
-    id: 3,
-    name: 'Iced Caramel Macchiato',
-    category: 'COFFEE',
-    price: 4.95,
-    status: 'Low Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA7HtW3YyaM7bddN8qfz-6PzgxxAOA0j2FvCsCvx66ny-w-ypHGHshnVjT6R2qAE2cyiFn1EOf-N3wsoVKjxFm-905-RwlRc8H9VZJq4joRLW30Q8mJZt23tcFIiWhZhIixmfDvazNQFxvaKmbn7v5wdpgRCUwAznXC2BF1kjPVAxgO6EDkCIjC_EJL5Gn9oA0Y73L0hZuR2Qc4JHIZKHxK9a4mVajqmlWTbmjsUxmCWtN0utheWUoWs0TVwukI-6Zs2NcaRKDi__w',
-  },
-  {
-    id: 4,
-    name: 'Butter Croissant',
-    category: 'BAKERY',
-    price: 3.25,
-    status: 'Out of Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDy510IrkcpPSOAZ65-A__iCclc2l2HYRJJuwg4Bk2fNX61pePMkSnWQoRC_Xo8kvxu2j739g57vfbuajzLwB7CQP93pmHdEfPVrNSAUaoGq3NR_Ci-sBTGqw8iZT04j5eIAtGBJK1tUYJZDZokc4k5WPikb6647dZWu2uhSFnScohWOfCXoGsBpL6V20W0dYMlrNiCPo2oh80yMhvGpc_K25YKGYYXBxtLWmERa9NszW8BqZkvmhYmtlsZyhIvrcNmwohSFmPw91M',
-  },
-  {
-    id: 5,
-    name: 'Blueberry Muffin',
-    category: 'BAKERY',
-    price: 3.50,
-    status: 'In Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDX0oPJ-ByAWeNnj1U_QkEVvaax6E7GXZ02aIg-a7Kx2Afa4e2PpypDxHOg5rZHtgX4B7jmMQtTxs0XAvkEzMsyXRnEDvls0T0CywNRVG4Z3c3YBxyHQ48HtKciFmKc9-K5a-9m9qFp0MHcpl4XBdJmkzlEaY6HmSQItwNreNRCjNeUQg6RY4UE1627aq3hFh21Bc8X_nH38lyufJNtQF1smEYmi6Z1HwIXhIRMl4VJK9qL8mxEr-RvILqG2CSzZTKK1VRdnC-F4zU',
-  },
-  {
-    id: 6,
-    name: 'Ceremonial Matcha Latte',
-    category: 'TEA',
-    price: 4.50,
-    status: 'In Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA7HtW3YyaM7bddN8qfz-6PzgxxAOA0j2FvCsCvx66ny-w-ypHGHshnVjT6R2qAE2cyiFn1EOf-N3wsoVKjxFm-905-RwlRc8H9VZJq4joRLW30Q8mJZt23tcFIiWhZhIixmfDvazNQFxvaKmbn7v5wdpgRCUwAznXC2BF1kjPVAxgO6EDkCIjC_EJL5Gn9oA0Y73L0hZuR2Qc4JHIZKHxK9a4mVajqmlWTbmjsUxmCWtN0utheWUoWs0TVwukI-6Zs2NcaRKDi__w',
-  },
-  {
-    id: 7,
-    name: 'Nitro Cold Brew',
-    category: 'COFFEE',
-    price: 4.25,
-    status: 'Low Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSzwW0T-52_IqAheLtAOW87rqwZS9LVb6xnhDKYiD4tLzlos_ks0Da2OZidv-ANyOd_LSQYJ3AxNuSM3JPPokbfXxqmqulPG7-Bl-39tGVJz9byz47ngU37dmh6_SA5ajPT9iO_k5wCRPhj7_DL7RudQExaTc4j-r80XgpNm8-IIoxdxHIQSGMdJ5r2yW62VS86SGRai6Gb2miJzvPFzUKf0LlrvHT_-lyzz7lUtgFy5JyQ7L1leXaJyLFVh-PLZOJsN4uhg1P3DA',
-  },
-  {
-    id: 8,
-    name: 'Avocado Toast',
-    category: 'FOOD',
-    price: 8.50,
-    status: 'In Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDX0oPJ-ByAWeNnj1U_QkEVvaax6E7GXZ02aIg-a7Kx2Afa4e2PpypDxHOg5rZHtgX4B7jmMQtTxs0XAvkEzMsyXRnEDvls0T0CywNRVG4Z3c3YBxyHQ48HtKciFmKc9-K5a-9m9qFp0MHcpl4XBdJmkzlEaY6HmSQItwNreNRCjNeUQg6RY4UE1627aq3hFh21Bc8X_nH38lyufJNtQF1smEYmi6Z1HwIXhIRMl4VJK9qL8mxEr-RvILqG2CSzZTKK1VRdnC-F4zU',
-  },
-  {
-    id: 9,
-    name: 'Lemon Loaf',
-    category: 'BAKERY',
-    price: 3.00,
-    status: 'In Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCONTQ6x_UV8T1-CdStbTjp-WiQwY9CDNBvpsL9QIgsQ8ujvPhwxQs_uIfkhaBivVjs1SdVbPF9Cu-E5LMzx7rU0c2ApaFjgnlMWH-wQQwjj797onjBlnqyl01YYC061EE3RP5xbIiMSU4DKXjSMOsU9keimiO2q1FJLl2ylgPrCdyGdwgFSb9zrSSJu6kCRAFjcoQia2vQWEhaTadcr3hGmweCW2FcbK56KzO71hlwB8cpm2wW9iUI1J7e9INoD9XP8v293sg3Yxs',
-  },
-  {
-    id: 10,
-    name: 'Everything Bagel',
-    category: 'BAKERY',
-    price: 2.75,
-    status: 'Out of Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDy510IrkcpPSOAZ65-A__iCclc2l2HYRJJuwg4Bk2fNX61pePMkSnWQoRC_Xo8kvxu2j739g57vfbuajzLwB7CQP93pmHdEfPVrNSAUaoGq3NR_Ci-sBTGqw8iZT04j5eIAtGBJK1tUYJZDZokc4k5WPikb6647dZWu2uhSFnScohWOfCXoGsBpL6V20W0dYMlrNiCPo2oh80yMhvGpc_K25YKGYYXBxtLWmERa9NszW8BqZkvmhYmtlsZyhIvrcNmwohSFmPw91M',
-  },
-  {
-    id: 11,
-    name: 'Signature Hot Cocoa',
-    category: 'NON-COFFEE',
-    price: 4.00,
-    status: 'In Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA7HtW3YyaM7bddN8qfz-6PzgxxAOA0j2FvCsCvx66ny-w-ypHGHshnVjT6R2qAE2cyiFn1EOf-N3wsoVKjxFm-905-RwlRc8H9VZJq4joRLW30Q8mJZt23tcFIiWhZhIixmfDvazNQFxvaKmbn7v5wdpgRCUwAznXC2BF1kjPVAxgO6EDkCIjC_EJL5Gn9oA0Y73L0hZuR2Qc4JHIZKHxK9a4mVajqmlWTbmjsUxmCWtN0utheWUoWs0TVwukI-6Zs2NcaRKDi__w',
-  },
-  {
-    id: 12,
-    name: 'Spiced Chai Latte',
-    category: 'TEA',
-    price: 4.25,
-    status: 'Low Stock',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDX0oPJ-ByAWeNnj1U_QkEVvaax6E7GXZ02aIg-a7Kx2Afa4e2PpypDxHOg5rZHtgX4B7jmMQtTxs0XAvkEzMsyXRnEDvls0T0CywNRVG4Z3c3YBxyHQ48HtKciFmKc9-K5a-9m9qFp0MHcpl4XBdJmkzlEaY6HmSQItwNreNRCjNeUQg6RY4UE1627aq3hFh21Bc8X_nH38lyufJNtQF1smEYmi6Z1HwIXhIRMl4VJK9qL8mxEr-RvILqG2CSzZTKK1VRdnC-F4zU',
-  },
-];
 
 const filters: FilterType[] = ['All', 'In Stock', 'Low Stock', 'Out of Stock'];
 
@@ -128,18 +28,87 @@ const statusBadgeClasses: Record<Product['status'], string> = {
   'Out of Stock': 'bg-[#ef44441a] text-[#f87171]',
 };
 
+const mapStockStatus = (status: string): Product['status'] => {
+  switch (status) {
+    case 'IN_STOCK': return 'In Stock';
+    case 'LOW_STOCK': return 'Low Stock';
+    case 'OUT_OF_STOCK': return 'Out of Stock';
+    default: return 'In Stock';
+  }
+};
+
 // ─── Component ───────────────────────────────────────────────────────
 
 export default function ProductsContent() {
+  const [productList, setProductList] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    lowStock: 0,
+    outOfStock: 0
+  });
+
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  const fetchAllProducts = useCallback(async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
+    try {
+      let currentPage = 1;
+      let totalPages = 1;
+      const allFetchedProducts: Product[] = [];
+
+      // Loop until all pages are fetched
+      while (currentPage <= totalPages) {
+        const response: AllProductsResponse = await dashboardService.getAllProducts(currentPage, 10);
+        
+        const mappedProducts: Product[] = response.product_items.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: item.category_name,
+          price: item.price,
+          description: item.description || '',
+          status: mapStockStatus(item.stock_status),
+          image: item.image_url
+        }));
+
+        allFetchedProducts.push(...mappedProducts);
+        
+        // Update product list incrementally so user sees data appearing
+        setProductList([...allFetchedProducts]);
+        
+        totalPages = response.pagination.total_pages;
+        currentPage++;
+      }
+
+      // Update stats based on the full list
+      const lowStock = allFetchedProducts.filter(p => p.status === 'Low Stock').length;
+      const outOfStock = allFetchedProducts.filter(p => p.status === 'Out of Stock').length;
+      setStats({
+        total: allFetchedProducts.length,
+        lowStock,
+        outOfStock
+      });
+
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAllProducts();
+  }, [fetchAllProducts]);
+
   const filteredProducts = useMemo(() => {
-    if (activeFilter === 'All') return products;
-    return products.filter((p) => p.status === activeFilter);
-  }, [activeFilter]);
+    if (activeFilter === 'All') return productList;
+    return productList.filter((p) => p.status === activeFilter);
+  }, [activeFilter, productList]);
 
   return (
     <>
@@ -189,7 +158,7 @@ export default function ProductsContent() {
                 <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
                   Total Products
                 </p>
-                <p className="text-3xl font-black text-[#f6f8f6]">24</p>
+                <p className="text-3xl font-black text-[#f6f8f6]">{stats.total}</p>
               </div>
             </div>
 
@@ -201,7 +170,7 @@ export default function ProductsContent() {
                 <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
                   Low Stock
                 </p>
-                <p className="text-3xl font-black text-[#f6f8f6]">3</p>
+                <p className="text-3xl font-black text-[#f6f8f6]">{stats.lowStock}</p>
               </div>
             </div>
 
@@ -213,7 +182,7 @@ export default function ProductsContent() {
                 <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
                   Out of Stock
                 </p>
-                <p className="text-3xl font-black text-[#f6f8f6]">1</p>
+                <p className="text-3xl font-black text-[#f6f8f6]">{stats.outOfStock}</p>
               </div>
             </div>
           </div>
@@ -239,6 +208,12 @@ export default function ProductsContent() {
                 </button>
               );
             })}
+            {isLoading && (
+              <div className="flex items-center gap-2 ml-4">
+                <div className="w-4 h-4 border-2 border-[#14b83d] border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-xs text-[#bccbb6] font-medium">Fetching more products...</span>
+              </div>
+            )}
           </div>
         </section>
 

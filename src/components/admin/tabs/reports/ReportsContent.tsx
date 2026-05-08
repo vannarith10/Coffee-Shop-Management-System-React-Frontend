@@ -14,14 +14,17 @@ const categoryData = [
 ];
 
 const heatmapLevels = [
-  [1, 3, 4, 4, 2, 1, 1, 2, 3, 2, 1, 0],
-  [1, 2, 3, 4, 3, 2, 2, 3, 4, 3, 2, 1],
-  [2, 4, 4, 4, 3, 2, 3, 4, 3, 2, 1, 0],
-  [0, 1, 2, 3, 4, 4, 3, 2, 3, 2, 1, 1],
+  [1, 0, 0, 0, 0, 1, 2, 3, 4, 3, 2, 3, 4, 4, 3, 2, 3, 4, 4, 3, 2, 1, 1, 0],
+  [0, 0, 0, 0, 1, 2, 3, 4, 4, 3, 2, 3, 4, 4, 3, 2, 3, 4, 4, 3, 2, 1, 0, 0],
+  [0, 0, 0, 0, 1, 2, 3, 4, 4, 3, 3, 4, 4, 4, 4, 3, 3, 4, 4, 3, 2, 1, 1, 0],
+  [0, 0, 0, 0, 1, 2, 3, 4, 3, 2, 2, 3, 4, 4, 3, 2, 3, 4, 4, 3, 2, 1, 0, 0],
+  [1, 0, 0, 0, 1, 2, 3, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 1],
+  [1, 1, 1, 0, 1, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1],
+  [1, 1, 1, 0, 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 1, 0],
 ];
 
-const heatmapLabels = ['MON', 'WED', 'FRI', 'SUN'];
-const heatmapHours = ['8AM', '12PM', '4PM', '8PM'];
+const heatmapLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+const heatmapHours = ['12AM', '4AM', '8AM', '12PM', '4PM', '8PM', '11PM'];
 
 const levelClasses: Record<number, string> = {
   0: 'bg-[#1a2e1e]/30',
@@ -146,15 +149,19 @@ export default function ReportsContent() {
       </section>
 
       {/* Bottom Section: Donut + Heatmap */}
-      <section className="px-8 py-4 grid grid-cols-1 xl:grid-cols-2 gap-6 mb-10">
-        {/* Sales by Category */}
-        <div className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-bold mb-1">Sales by Category</h3>
-          <p className="text-sm text-slate-500 dark:text-[#9db8a4] mb-8">Revenue distribution across product lines</p>
+      {/* Sales by Category */}
+      <section className="px-8 py-4">
+        <div className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-8 shadow-sm">
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h3 className="text-xl font-bold tracking-tight">Sales by Category</h3>
+              <p className="text-sm text-slate-500 dark:text-[#9db8a4]">Revenue distribution across product lines</p>
+            </div>
+          </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-16 py-4">
             {/* Donut Chart */}
-            <div className="relative w-48 h-48">
+            <div className="relative w-64 h-64">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#14b83d" strokeDasharray={getStrokeDasharray(categoryData[0].percent)} strokeDashoffset={donutOffset1} strokeWidth="4" />
                 <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#7c2d12" strokeDasharray={getStrokeDasharray(categoryData[1].percent)} strokeDashoffset={donutOffset2} strokeWidth="4" />
@@ -162,70 +169,75 @@ export default function ReportsContent() {
                 <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#f59e0b" strokeDasharray={getStrokeDasharray(categoryData[3].percent)} strokeDashoffset={donutOffset4} strokeWidth="4" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold">$35k</span>
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Total</span>
+                <span className="text-4xl font-bold">$35,210</span>
+                <span className="text-xs uppercase text-slate-400 font-black tracking-widest mt-1">Total Revenue</span>
               </div>
             </div>
 
             {/* Legend */}
-            <div className="flex-1 space-y-3 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 max-w-xl">
               {categoryData.map((cat) => (
-                <div key={cat.label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }}></span>
-                    <span className="text-sm font-medium">{cat.label}</span>
+                <div key={cat.label} className="flex items-center gap-4 group">
+                  <div className="w-4 h-12 rounded-full" style={{ backgroundColor: cat.color }}></div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-400 font-bold uppercase tracking-wider">{cat.label}</span>
+                    <span className="text-2xl font-black">{cat.percent}%</span>
                   </div>
-                  <span className="text-sm font-bold">{cat.percent}%</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Busiest Hours Heatmap */}
-        <div className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
-          <div className="flex justify-between items-start mb-6">
+      {/* Busiest Hours Heatmap */}
+      <section className="px-8 py-4 mb-10">
+        <div className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-8 shadow-sm">
+          <div className="flex justify-between items-start mb-8">
             <div>
-              <h3 className="text-lg font-bold">Busiest Hours</h3>
+              <h3 className="text-xl font-bold tracking-tight">Busiest Hours</h3>
               <p className="text-sm text-slate-500 dark:text-[#9db8a4]">Average order volume by time & day</p>
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-slate-400 uppercase font-bold">
+            <div className="flex items-center gap-2 text-[11px] text-slate-400 uppercase font-bold">
               <span>Low</span>
-              <div className="flex gap-0.5">
-                <span className="w-3 h-3 bg-[#14b83d]/10 rounded-sm"></span>
-                <span className="w-3 h-3 bg-[#14b83d]/40 rounded-sm"></span>
-                <span className="w-3 h-3 bg-[#14b83d] rounded-sm"></span>
+              <div className="flex gap-1">
+                <span className="w-4 h-4 bg-[#14b83d]/10 rounded-sm"></span>
+                <span className="w-4 h-4 bg-[#14b83d]/40 rounded-sm"></span>
+                <span className="w-4 h-4 bg-[#14b83d] rounded-sm"></span>
               </div>
               <span>High</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-8 gap-2">
-            {/* Row labels */}
-            <div className="space-y-2 flex flex-col pt-6">
-              {heatmapLabels.map((label) => (
-                <span key={label} className="h-5 text-[10px] font-bold text-slate-400">{label}</span>
+          <div 
+            className="grid gap-y-2 gap-x-4 items-center"
+            style={{ gridTemplateColumns: '80px repeat(24, minmax(0, 1fr))' }}
+          >
+            {/* Header / Column labels */}
+            <div className="col-start-2 col-span-24 flex justify-between mb-4 px-2">
+              {heatmapHours.map((h) => (
+                <span key={h} className="text-[11px] font-black text-slate-400 tracking-tighter uppercase">{h}</span>
               ))}
             </div>
-
-            {/* Heatmap grid */}
-            <div className="col-span-7 grid grid-cols-12 gap-1.5">
-              {/* Column labels */}
-              <div className="col-span-12 flex justify-between mb-1">
-                {heatmapHours.map((h) => (
-                  <span key={h} className="text-[10px] font-bold text-slate-400">{h}</span>
-                ))}
-              </div>
-              {/* Cells */}
-              {heatmapLevels.map((row, rowIdx) =>
-                row.map((level, colIdx) => (
+            
+            {/* Rows */}
+            {heatmapLevels.map((row, rowIdx) => (
+              <React.Fragment key={rowIdx}>
+                {/* Day Label */}
+                <span className="text-[12px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider pr-4">
+                  {heatmapLabels[rowIdx]}
+                </span>
+                
+                {/* 24 Hour Cells for this day */}
+                {row.map((level, colIdx) => (
                   <div
                     key={`${rowIdx}-${colIdx}`}
-                    className={`rounded-sm aspect-square ${levelClasses[level]}`}
+                    className={`rounded-sm aspect-square transition-all hover:scale-125 hover:z-10 cursor-pointer shadow-sm ${levelClasses[level]}`}
+                    title={`${heatmapLabels[rowIdx]} ${colIdx}:00 - Level ${level}`}
                   />
-                ))
-              )}
-            </div>
+                ))}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </section>

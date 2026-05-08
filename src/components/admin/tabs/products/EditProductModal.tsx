@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // ─── Types ───────────────────────────────────────────────────────────
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   category: string;
   price: number;
