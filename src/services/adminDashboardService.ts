@@ -15,6 +15,7 @@ export interface ProductItem {
   image_url: string;
   category_type: string;
   category_name: string;
+  cost_price: number;
   stock_status: string;
 }
 

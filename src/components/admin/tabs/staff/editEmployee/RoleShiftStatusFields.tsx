@@ -24,6 +24,7 @@ export default function RoleShiftStatusFields({
             onChange={onChange}
             className={INPUT_CLASS + ' appearance-none'}
           >
+            <option value="staff">Staff</option>
             <option value="barista">Barista</option>
             <option value="cashier">Cashier</option>
             <option value="admin">Admin</option>

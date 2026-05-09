@@ -53,11 +53,17 @@ export type OrderUpdateEvent = {
 
 
 
+export interface CreateOrderItem {
+  productId: string;
+  quantity: number;
+}
+
+
 export interface CreateOrderRequest {
   paymentMethod: "QR" | "CASH";
   currency: "USD" | "KHR";
   note: string;
-  items: OrderItem[];
+  items: CreateOrderItem[];
 }
 
 

@@ -4,7 +4,7 @@ export interface EditStaffFormData {
   email: string;
   phone: string;
   workingDays: string[];
-  role: 'barista' | 'cashier' | 'admin';
+  role: 'staff' | 'barista' | 'cashier' | 'admin';
   shift: 'morning' | 'afternoon' | 'evening';
   isActive: boolean;
   newPassword: string;

@@ -184,7 +184,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSuccess }
                   <label className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider px-1">Category Name</label>
                   <input
                     type="text"
-                    value={editingProduct.categoryName === product?.categoryName ? '' : editingProduct.categoryName}
+                    value={editingProduct.categoryName}
                     onChange={(e) => handleChange('categoryName', e.target.value)}
                     placeholder={product?.categoryName || "Enter Category Name"}
                     className="w-full bg-[#0a140c] border border-[#3d4a3b] rounded-xl px-4 py-3 text-[#f6f8f6] focus:border-[#14b83d] focus:ring-1 focus:ring-[#14b83d] outline-none transition-all font-medium"
