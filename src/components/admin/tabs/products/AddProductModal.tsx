@@ -2,8 +2,6 @@ import React, { useState, useRef } from 'react';
 
 // ─── Data ────────────────────────────────────────────────────────────
 
-const categories = ['Coffee', 'Tea', 'Pastries', 'Merchandise'];
-
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,7 +10,6 @@ interface AddProductModalProps {
 // ─── Component ───────────────────────────────────────────────────────
 
 export default function AddProductModal({ isOpen, onClose }: AddProductModalProps) {
-  const [isActive, setIsActive] = useState(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -125,36 +122,29 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
               {/* Category & Status Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Category</label>
-                  <select className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] appearance-none cursor-pointer outline-none">
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                  <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Category Name</label>
+                  <input
+                    className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] placeholder:text-[#bccbb6]/40 transition-all outline-none"
+                    placeholder="e.g. COFFEE"
+                    type="text"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Status</label>
-                  <div className="flex items-center h-[56px] bg-white/5 rounded-xl px-5 justify-between">
-                    <span className="text-[#bccbb6] text-sm">Active on Menu</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        checked={isActive}
-                        onChange={(e) => setIsActive(e.target.checked)}
-                        className="sr-only peer"
-                        type="checkbox"
-                      />
-                      <div className="w-11 h-6 bg-[#224128] peer-focus:outline-none rounded-full peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:bg-[#14b83d]"></div>
-                    </label>
-                  </div>
+                  <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Stock Status</label>
+                  <select className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] appearance-none cursor-pointer outline-none">
+                    <option value="IN_STOCK" className="bg-[#112115] text-[#f6f8f6]">IN_STOCK</option>
+                    <option value="LOW_STOCK" className="bg-[#112115] text-[#f6f8f6]">LOW_STOCK</option>
+                    <option value="OUT_OF_STOCK" className="bg-[#112115] text-[#f6f8f6]">OUT_OF_STOCK</option>
+                  </select>
                 </div>
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Notes</label>
+                <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Description</label>
                 <textarea
                   className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] placeholder:text-[#bccbb6]/40 transition-all resize-none outline-none"
-                  placeholder="Batch details, origin notes, or allergic warnings..."
+                  placeholder="Enter product description..."
                   rows={3}
                 />
               </div>

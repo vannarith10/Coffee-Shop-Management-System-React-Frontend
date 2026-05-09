@@ -289,6 +289,7 @@ export default function ProductsContent() {
                     <th className="px-6 py-4">Product</th>
                     <th className="px-6 py-4">Category</th>
                     <th className="px-6 py-4 text-center">Price</th>
+                    <th className="px-6 py-4 text-center">Cost</th>
                     <th className="px-6 py-4 text-center">Stock Status</th>
                     <th className="px-6 py-4 text-center">Stock Action</th>
                     <th className="px-6 py-4 text-right">Edit</th>
@@ -316,8 +317,11 @@ export default function ProductsContent() {
                           <span className="text-sm font-bold text-[#bccbb6]">{product.categoryName}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center font-mono text-[#14b83d]">
+                      <td className="px-6 py-4 text-center font-mono text-[#14b83d] font-bold">
                         ${product.price.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-center font-mono text-[#bccbb6]">
+                        ${product.costPrice.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span
