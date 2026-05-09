@@ -125,20 +125,22 @@ export const dashboardService = {
   },
 
   async updateProduct(productId: string, payload: any): Promise<void> {
-    // If payload contains an image (File), use FormData. Otherwise JSON is fine for PATCH.
-    // However, usually we send everything as FormData if image is involved.
-    let body = payload;
-    let headers = {};
+    const formData = new FormData();
+    
+    // Add fields to FormData only if they are present in the payload
+    if (payload.name) formData.append('name', payload.name);
+    if (payload.category_name) formData.append('category_name', payload.category_name);
+    if (payload.price) formData.append('selling_price', payload.price.toString());
+    if (payload.cost_price) formData.append('cost_price', payload.cost_price.toString());
+    if (payload.description !== undefined) formData.append('description', payload.description || '');
     
     if (payload.image instanceof File) {
-      body = new FormData();
-      Object.keys(payload).forEach(key => {
-        body.append(key, payload[key]);
-      });
-      headers = { 'Content-Type': 'multipart/form-data' };
+      formData.append('image', payload.image);
     }
 
-    await api.patch(`/api/v1/admin-dashboard/product/${productId}`, body, { headers });
+    await api.patch(`/api/v1/admin-dashboard/product/${productId}/patch-product`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
 
   async getCategories(): Promise<string[]> {
