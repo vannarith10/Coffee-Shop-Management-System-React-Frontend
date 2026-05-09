@@ -55,6 +55,7 @@ export default function ProductsContent() {
   const [stockUpdatingProduct, setStockUpdatingProduct] = useState<Product | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchAllProducts = useCallback(async () => {
     if (isLoading) return;
@@ -112,6 +113,15 @@ export default function ProductsContent() {
   const filteredProducts = useMemo(() => {
     let list = [...productList];
     
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        p.categoryName.toLowerCase().includes(q)
+      );
+    }
+
     const statusPriority: Record<Product['status'], number> = {
       'Out of Stock': 0,
       'Low Stock': 1,
@@ -122,7 +132,7 @@ export default function ProductsContent() {
 
     if (activeFilter === 'All') return list;
     return list.filter((p) => p.status === activeFilter);
-  }, [activeFilter, productList]);
+  }, [activeFilter, productList, searchQuery]);
 
   return (
     <>
@@ -226,28 +236,44 @@ export default function ProductsContent() {
 
         {/* Filters */}
         <section className="px-8 py-2 shrink-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            {filters.map((filter) => {
-              const isActive = activeFilter === filter;
-              return (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={
-                    'px-6 py-2 rounded-lg text-sm font-bold transition-all ' +
-                    (isActive
-                      ? 'bg-[#14b83d] text-white shadow-md hover:brightness-110'
-                      : 'bg-[#1c3622] border border-[#3d4a3b] hover:border-[#14b83d] text-[#bccbb6]')
-                  }
-                >
-                  {filter === 'All' ? 'All Products' : filter}
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-4 flex-wrap bg-[#1c3622]/20 p-2 rounded-xl border border-[#3d4a3b]/50 w-fit">
+            <div className="flex items-center gap-2 flex-wrap">
+              {filters.map((filter) => {
+                const isActive = activeFilter === filter;
+                return (
+                  <button
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
+                    className={
+                      'px-6 py-2 rounded-lg text-sm font-bold transition-all ' +
+                      (isActive
+                        ? 'bg-[#14b83d] text-white shadow-md hover:brightness-110'
+                        : 'bg-[#112115] border border-[#3d4a3b] hover:border-[#14b83d] text-[#bccbb6]')
+                    }
+                  >
+                    {filter === 'All' ? 'All Products' : filter}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-px h-8 bg-[#3d4a3b]/50 mx-1 hidden md:block" />
+
+            <div className="relative min-w-[320px]">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#14b83d] text-lg font-bold">search</span>
+              <input
+                type="text"
+                placeholder="Search by name or category..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-2.5 bg-[#0a140c] border border-[#3d4a3b] rounded-xl text-sm focus:border-[#14b83d] focus:ring-1 focus:ring-[#14b83d] outline-none text-[#f6f8f6] shadow-inner transition-all placeholder:text-[#3d4a3b]"
+              />
+            </div>
+
             {isLoading && (
-              <div className="flex items-center gap-2 ml-4">
+              <div className="flex items-center gap-2 ml-2 pr-4">
                 <div className="w-4 h-4 border-2 border-[#14b83d] border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-xs text-[#bccbb6] font-medium">Fetching more products...</span>
+                <span className="text-xs text-[#bccbb6] font-medium whitespace-nowrap">Syncing...</span>
               </div>
             )}
           </div>
