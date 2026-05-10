@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { dashboardService } from '../../../../services/adminDashboardService';
 import { toast } from 'sonner';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../../../../utils/cropImage';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -31,6 +33,13 @@ export default function EditProductModal({ isOpen, onClose, product, onSuccess }
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Cropper states
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [isCropping, setIsCropping] = useState(false);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -59,10 +68,44 @@ export default function EditProductModal({ isOpen, onClose, product, onSuccess }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && editingProduct) {
-      setSelectedFile(file);
-      setEditingProduct({ ...editingProduct, image: URL.createObjectURL(file) });
+    if (file) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setImageToCrop(reader.result as string);
+        setIsCropping(true);
+      });
+      reader.readAsDataURL(file);
     }
+  };
+
+  const onCropComplete = useCallback((_extendedCroppedArea: any, pixelCrop: any) => {
+    setCroppedAreaPixels(pixelCrop);
+  }, []);
+
+  const handleCropSave = async () => {
+    if (!imageToCrop || !croppedAreaPixels) return;
+
+    try {
+      const croppedImageBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      if (croppedImageBlob && editingProduct) {
+        const croppedFile = new File([croppedImageBlob], "product-image.jpg", { type: 'image/jpeg' });
+        setSelectedFile(croppedFile);
+        
+        const previewUrl = URL.createObjectURL(croppedImageBlob);
+        setEditingProduct({ ...editingProduct, image: previewUrl });
+        setIsCropping(false);
+        setImageToCrop(null);
+      }
+    } catch (error) {
+      console.error("Error cropping image:", error);
+      toast.error("Failed to crop image");
+    }
+  };
+
+  const handleCropCancel = () => {
+    setIsCropping(false);
+    setImageToCrop(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleChange = (field: string, value: any) => {
@@ -283,6 +326,70 @@ export default function EditProductModal({ isOpen, onClose, product, onSuccess }
           </div>
         </div>
       </div>
+
+      {/* ─── Cropper Overlay ────────────────────────────────────── */}
+      {isCropping && imageToCrop && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-10 animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl h-[80vh] flex flex-col gap-6">
+            <div className="flex items-center justify-between text-white shrink-0">
+              <div>
+                <h4 className="text-xl font-black tracking-tight">Crop Product Image</h4>
+                <p className="text-white/50 text-xs uppercase tracking-widest font-bold mt-1">Rectangle crop (1:1 aspect ratio)</p>
+              </div>
+              <button onClick={handleCropCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="relative flex-1 bg-[#0a140c] rounded-2xl overflow-hidden border border-white/10">
+              <Cropper
+                image={imageToCrop}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+                cropShape="rect"
+                showGrid={true}
+              />
+            </div>
+
+            <div className="flex flex-col gap-6 shrink-0">
+              {/* Zoom Slider */}
+              <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
+                <span className="material-symbols-outlined text-white/50">zoom_out</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="flex-1 accent-[#14b83d] h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="material-symbols-outlined text-white/50">zoom_in</span>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={handleCropCancel}
+                  className="flex-1 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCropSave}
+                  className="flex-[2] py-4 bg-[#14b83d] text-white font-bold rounded-xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined">crop</span>
+                  <span>Apply Crop</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
