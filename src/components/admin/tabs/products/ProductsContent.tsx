@@ -26,8 +26,8 @@ const filters: FilterType[] = ['All', 'In Stock', 'Low Stock', 'Out of Stock'];
 
 const statusBadgeClasses: Record<Product['status'], string> = {
   'In Stock': 'bg-[#14b83d33] text-[#50e161]',
-  'Low Stock': 'bg-[#ff7189]/20 text-[#ff7189]',
-  'Out of Stock': 'bg-[#ef44441a] text-[#f87171]',
+  'Low Stock': 'bg-[#f59e0b]/20 text-[#f59e0b]',
+  'Out of Stock': 'bg-[#ef4444]/20 text-[#f87171]',
 };
 
 const mapStockStatus = (status: string): Product['status'] => {
@@ -204,9 +204,9 @@ export default function ProductsContent() {
 
             <div 
               onClick={() => setActiveFilter('Low Stock')}
-              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#ff7189]/50 cursor-pointer ${activeFilter === 'Low Stock' ? 'ring-2 ring-[#ff7189]' : ''}`}
+              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#f59e0b]/50 cursor-pointer ${activeFilter === 'Low Stock' ? 'ring-2 ring-[#f59e0b]' : ''}`}
             >
-              <div className="w-12 h-12 rounded-lg bg-[#ff7189]/10 flex items-center justify-center text-[#ff7189]">
+              <div className="w-12 h-12 rounded-lg bg-[#f59e0b]/10 flex items-center justify-center text-[#f59e0b]">
                 <span className="material-symbols-outlined">warning</span>
               </div>
               <div>
@@ -373,6 +373,9 @@ export default function ProductsContent() {
       <AddProductModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => {
+          fetchAllProducts();
+        }}
       />
 
       <EditProductModal

@@ -143,6 +143,32 @@ export const dashboardService = {
     });
   },
 
+  async addProduct(payload: any): Promise<ProductItem> {
+    const formData = new FormData();
+    formData.append('name', payload.name);
+    formData.append('price', payload.price.toString());
+    formData.append('cost', payload.cost.toString());
+    formData.append('category_name', payload.category_name);
+    formData.append('stock_status', payload.stock_status);
+    
+    if (payload.description) {
+      formData.append('description', payload.description);
+    }
+    
+    if (payload.image instanceof File) {
+      formData.append('image', payload.image);
+    }
+
+    const response = await api.post<ProductItem>(
+      '/api/v1/admin-dashboard/add-product',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
+    );
+    return response.data;
+  },
+
   async getCategories(): Promise<string[]> {
     const response = await api.get<string[]>('/api/v1/admin-dashboard/get-all-categories');
     return response.data;

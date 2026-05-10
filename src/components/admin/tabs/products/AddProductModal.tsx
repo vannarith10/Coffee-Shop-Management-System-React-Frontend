@@ -2,19 +2,30 @@ import React, { useState, useRef, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../../utils/cropImage';
 import { toast } from 'sonner';
+import { dashboardService } from '../../../../services/adminDashboardService';
 
 // ─── Data ────────────────────────────────────────────────────────────
 
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 // ─── Component ───────────────────────────────────────────────────────
 
-export default function AddProductModal({ isOpen, onClose }: AddProductModalProps) {
+export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProductModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    price: '',
+    cost: '',
+    category_name: '',
+    stock_status: 'IN_STOCK',
+    description: ''
+  });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cropper states
@@ -64,6 +75,63 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     setIsCropping(false);
     setImageToCrop(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const validateForm = () => {
+    if (!formData.name.trim()) return "Product name is required.";
+    if (!formData.price || parseFloat(formData.price) <= 0) return "Selling price must be greater than zero.";
+    if (!formData.cost || parseFloat(formData.cost) < 0) return "Cost price cannot be negative.";
+    if (!formData.category_name.trim()) return "Category name is required.";
+    if (!formData.stock_status) return "Stock status is required.";
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errorMsg = validateForm();
+    if (errorMsg) {
+      toast.error(errorMsg, { position: 'top-center' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await dashboardService.addProduct({
+        ...formData,
+        price: parseFloat(formData.price),
+        cost: parseFloat(formData.cost),
+        image: selectedFile
+      });
+      
+      toast.success("Product added successfully!", { position: 'top-center' });
+      onSuccess?.();
+      handleClose();
+    } catch (error: any) {
+      console.error("Add product error:", error);
+      const detail = error.response?.data?.detail || error.message || "Failed to add product";
+      toast.error(detail, { position: 'top-center' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setFormData({
+      name: '',
+      price: '',
+      cost: '',
+      category_name: '',
+      stock_status: 'IN_STOCK',
+      description: ''
+    });
+    setImagePreview(null);
+    setSelectedFile(null);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -125,11 +193,14 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
               </button>
             </div>
 
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               {/* Name */}
               <div className="space-y-2">
                 <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Product Name</label>
                 <input
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                   className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] placeholder:text-[#bccbb6]/40 transition-all outline-none"
                   placeholder="e.g. Ethiopian Yirgacheffe Roast"
                   type="text"
@@ -143,6 +214,9 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#14b83d] font-bold">$</span>
                     <input
+                      name="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
                       className="w-full bg-white/5 border-none rounded-xl py-4 pl-8 pr-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] placeholder:text-[#bccbb6]/40 transition-all outline-none"
                       placeholder="0.00"
                       step="0.01"
@@ -156,6 +230,9 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bccbb6] font-bold">$</span>
                     <input
+                      name="cost"
+                      value={formData.cost}
+                      onChange={handleInputChange}
                       className="w-full bg-white/5 border-none rounded-xl py-4 pl-8 pr-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] placeholder:text-[#bccbb6]/40 transition-all outline-none"
                       placeholder="0.00"
                       step="0.01"
@@ -170,6 +247,9 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                 <div className="space-y-2">
                   <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Category Name</label>
                   <input
+                    name="category_name"
+                    value={formData.category_name}
+                    onChange={handleInputChange}
                     className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] placeholder:text-[#bccbb6]/40 transition-all outline-none"
                     placeholder="e.g. COFFEE"
                     type="text"
@@ -177,7 +257,12 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                 </div>
                 <div className="space-y-2">
                   <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Stock Status</label>
-                  <select className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] appearance-none cursor-pointer outline-none">
+                  <select 
+                    name="stock_status"
+                    value={formData.stock_status}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] appearance-none cursor-pointer outline-none"
+                  >
                     <option value="IN_STOCK" className="bg-[#112115] text-[#f6f8f6]">IN_STOCK</option>
                     <option value="LOW_STOCK" className="bg-[#112115] text-[#f6f8f6]">LOW_STOCK</option>
                     <option value="OUT_OF_STOCK" className="bg-[#112115] text-[#f6f8f6]">OUT_OF_STOCK</option>
@@ -189,6 +274,9 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
               <div className="space-y-2">
                 <label className="uppercase tracking-widest text-[0.75rem] text-[#bccbb6] block ml-1">Description</label>
                 <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
                   className="w-full bg-white/5 border-none rounded-xl py-4 px-5 text-[#f6f8f6] focus:ring-2 focus:ring-[#14b83d] placeholder:text-[#bccbb6]/40 transition-all resize-none outline-none"
                   placeholder="Enter product description..."
                   rows={3}
@@ -198,22 +286,29 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
               {/* Actions */}
               <div className="flex items-center gap-4 pt-4">
                 <button
-                  onClick={onClose}
-                  className="flex-1 py-4 px-6 rounded-2xl bg-white/5 text-[#f6f8f6] font-bold hover:bg-white/10 transition-all border border-white/10 flex items-center justify-center gap-2"
                   type="button"
+                  onClick={handleClose}
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 px-6 rounded-2xl bg-white/5 text-[#f6f8f6] font-bold hover:bg-white/10 transition-all border border-white/10 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <span>Cancel</span>
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onClose();
-                  }}
-                  className="flex-[2] py-4 px-6 rounded-2xl bg-[#14b83d] text-white font-bold shadow-[#14b83d]/30 shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                   type="submit"
+                  disabled={isSubmitting}
+                  className="flex-[2] py-4 px-6 rounded-2xl bg-[#14b83d] text-white font-bold shadow-[#14b83d]/30 shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-lg">add_circle</span>
-                  <span>Add Product</span>
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Adding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-lg">add_circle</span>
+                      <span>Add Product</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
