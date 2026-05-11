@@ -22,7 +22,7 @@ export default function DashboardContent({
 
       {/* Last Updated Indicator */}
       {lastUpdated && !loading && (
-        <div className="px-8 -mt-2 mb-2">
+        <div className="px-4 md:px-8 -mt-2 mb-2">
           <p className="text-xs text-slate-400 dark:text-[#9db8a4]">
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>

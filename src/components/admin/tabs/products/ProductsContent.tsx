@@ -146,98 +146,124 @@ export default function ProductsContent() {
         }
       `}</style>
 
-      <div className="flex-1 flex flex-col min-w-0 bg-[#112115] text-[#f6f8f6] h-full">
-        <header className="p-8 pb-4 shrink-0">
-          <div className="flex flex-wrap justify-between items-end gap-4">
-            <div className="flex min-w-72 flex-col gap-1">
-              <h2 className="text-3xl font-black tracking-tight text-[#f6f8f6]">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#112115] text-[#f6f8f6]">
+        <header className="px-4 md:px-8 pt-6 md:pt-8 pb-4 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div className="flex flex-col gap-1 min-w-0">
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-[#f6f8f6] truncate">
                 Product Management
               </h2>
-              <p className="text-[#bccbb6] text-base">
+              <p className="text-[#bccbb6] text-sm md:text-base">
                 Create and manage your coffee shop menu items.
               </p>
             </div>
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#14b83d] text-white rounded-lg text-sm font-bold shadow-md hover:brightness-110 transition-all"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#14b83d] text-white rounded-lg text-sm font-bold shadow-md hover:brightness-110 transition-all whitespace-nowrap"
               >
-                <span className="material-symbols-outlined text-lg">add_box</span>
-                <span>Add New Product</span>
+                <span className="material-symbols-outlined text-lg">
+                  add_box
+                </span>
+                <span>Add Product</span>
               </button>
             </div>
           </div>
         </header>
 
         {/* Stats Cards */}
-        <section className="px-8 py-4 shrink-0">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div 
-              onClick={() => setActiveFilter('All')}
-              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#14b83d]/50 cursor-pointer ${activeFilter === 'All' ? 'ring-2 ring-[#14b83d]' : ''}`}
+        <section className="px-4 md:px-8 py-4 shrink-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div
+              onClick={() => setActiveFilter("All")}
+              className={`bg-[#112115] border border-[#3d4a3b] p-4 md:p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#14b83d]/50 cursor-pointer ${
+                activeFilter === "All" ? "ring-2 ring-[#14b83d]" : ""
+              }`}
             >
-              <div className="w-12 h-12 rounded-lg bg-[#14b83d]/10 flex items-center justify-center text-[#14b83d]">
-                <span className="material-symbols-outlined">inventory</span>
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#14b83d]/10 flex items-center justify-center text-[#14b83d] shrink-0">
+                <span className="material-symbols-outlined text-xl md:text-2xl">
+                  inventory
+                </span>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1 truncate">
                   Total Products
                 </p>
-                <p className="text-3xl font-black text-[#f6f8f6]">{stats.total}</p>
+                <p className="text-2xl md:text-3xl font-black text-[#f6f8f6]">
+                  {stats.total}
+                </p>
               </div>
             </div>
 
-            <div 
-              onClick={() => setActiveFilter('In Stock')}
-              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#14b83d]/50 cursor-pointer ${activeFilter === 'In Stock' ? 'ring-2 ring-[#14b83d]' : ''}`}
+            <div
+              onClick={() => setActiveFilter("In Stock")}
+              className={`bg-[#112115] border border-[#3d4a3b] p-4 md:p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#14b83d]/50 cursor-pointer ${
+                activeFilter === "In Stock" ? "ring-2 ring-[#14b83d]" : ""
+              }`}
             >
-              <div className="w-12 h-12 rounded-lg bg-[#14b83d]/10 flex items-center justify-center text-[#14b83d]">
-                <span className="material-symbols-outlined">check_circle</span>
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#14b83d]/10 flex items-center justify-center text-[#14b83d] shrink-0">
+                <span className="material-symbols-outlined text-xl md:text-2xl">
+                  check_circle
+                </span>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1 truncate">
                   In Stock
                 </p>
-                <p className="text-3xl font-black text-[#f6f8f6]">{stats.inStock}</p>
+                <p className="text-2xl md:text-3xl font-black text-[#f6f8f6]">
+                  {stats.inStock}
+                </p>
               </div>
             </div>
 
-            <div 
-              onClick={() => setActiveFilter('Low Stock')}
-              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#f59e0b]/50 cursor-pointer ${activeFilter === 'Low Stock' ? 'ring-2 ring-[#f59e0b]' : ''}`}
+            <div
+              onClick={() => setActiveFilter("Low Stock")}
+              className={`bg-[#112115] border border-[#3d4a3b] p-4 md:p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#f59e0b]/50 cursor-pointer ${
+                activeFilter === "Low Stock" ? "ring-2 ring-[#f59e0b]" : ""
+              }`}
             >
-              <div className="w-12 h-12 rounded-lg bg-[#f59e0b]/10 flex items-center justify-center text-[#f59e0b]">
-                <span className="material-symbols-outlined">warning</span>
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#f59e0b]/10 flex items-center justify-center text-[#f59e0b] shrink-0">
+                <span className="material-symbols-outlined text-xl md:text-2xl">
+                  warning
+                </span>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1 truncate">
                   Low Stock
                 </p>
-                <p className="text-3xl font-black text-[#f6f8f6]">{stats.lowStock}</p>
+                <p className="text-2xl md:text-3xl font-black text-[#f6f8f6]">
+                  {stats.lowStock}
+                </p>
               </div>
             </div>
 
-            <div 
-              onClick={() => setActiveFilter('Out of Stock')}
-              className={`bg-[#112115] border border-[#3d4a3b] p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#ef4444]/50 cursor-pointer ${activeFilter === 'Out of Stock' ? 'ring-2 ring-[#ef4444]' : ''}`}
+            <div
+              onClick={() => setActiveFilter("Out of Stock")}
+              className={`bg-[#112115] border border-[#3d4a3b] p-4 md:p-6 rounded-xl flex items-center gap-4 shadow-sm transition-all hover:border-[#ef4444]/50 cursor-pointer ${
+                activeFilter === "Out of Stock" ? "ring-2 ring-[#ef4444]" : ""
+              }`}
             >
-              <div className="w-12 h-12 rounded-lg bg-[#ef4444]/20 flex items-center justify-center text-[#ef4444]">
-                <span className="material-symbols-outlined">error_outline</span>
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#ef4444]/20 flex items-center justify-center text-[#ef4444] shrink-0">
+                <span className="material-symbols-outlined text-xl md:text-2xl">
+                  error_outline
+                </span>
               </div>
-              <div>
-                <p className="text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1">
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs font-bold text-[#bccbb6] uppercase tracking-wider mb-1 truncate">
                   Out of Stock
                 </p>
-                <p className="text-3xl font-black text-[#f6f8f6]">{stats.outOfStock}</p>
+                <p className="text-2xl md:text-3xl font-black text-[#f6f8f6]">
+                  {stats.outOfStock}
+                </p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Filters */}
-        <section className="px-8 py-2 shrink-0">
-          <div className="flex items-center gap-4 flex-wrap bg-[#1c3622]/20 p-2 rounded-xl border border-[#3d4a3b]/50 w-fit">
-            <div className="flex items-center gap-2 flex-wrap">
+        <section className="px-4 md:px-8 py-2 shrink-0 overflow-x-auto no-scrollbar">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 bg-[#1c3622]/20 p-4 rounded-xl border border-[#3d4a3b]/50 w-full min-w-fit">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
               {filters.map((filter) => {
                 const isActive = activeFilter === filter;
                 return (
@@ -245,25 +271,27 @@ export default function ProductsContent() {
                     key={filter}
                     onClick={() => setActiveFilter(filter)}
                     className={
-                      'px-6 py-2 rounded-lg text-sm font-bold transition-all ' +
+                      "px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all whitespace-nowrap " +
                       (isActive
-                        ? 'bg-[#14b83d] text-white shadow-md hover:brightness-110'
-                        : 'bg-[#112115] border border-[#3d4a3b] hover:border-[#14b83d] text-[#bccbb6]')
+                        ? "bg-[#14b83d] text-white shadow-md hover:brightness-110"
+                        : "bg-[#112115] border border-[#3d4a3b] hover:border-[#14b83d] text-[#bccbb6]")
                     }
                   >
-                    {filter === 'All' ? 'All Products' : filter}
+                    {filter === "All" ? "All Products" : filter}
                   </button>
                 );
               })}
             </div>
 
-            <div className="w-px h-8 bg-[#3d4a3b]/50 mx-1 hidden md:block" />
+            <div className="w-px h-8 bg-[#3d4a3b]/50 mx-1 hidden lg:block" />
 
-            <div className="relative min-w-[320px]">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#14b83d] text-lg font-bold">search</span>
+            <div className="relative flex-1 min-w-[280px]">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#14b83d] text-lg font-bold">
+                search
+              </span>
               <input
                 type="text"
-                placeholder="Search by name or category..."
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-2.5 bg-[#0a140c] border border-[#3d4a3b] rounded-xl text-sm focus:border-[#14b83d] focus:ring-1 focus:ring-[#14b83d] outline-none text-[#f6f8f6] shadow-inner transition-all placeholder:text-[#3d4a3b]"
@@ -271,18 +299,20 @@ export default function ProductsContent() {
             </div>
 
             {isLoading && (
-              <div className="flex items-center gap-2 ml-2 pr-4">
+              <div className="flex items-center gap-2 pr-4 shrink-0">
                 <div className="w-4 h-4 border-2 border-[#14b83d] border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-xs text-[#bccbb6] font-medium whitespace-nowrap">Syncing...</span>
+                <span className="text-xs text-[#bccbb6] font-medium whitespace-nowrap">
+                  Syncing...
+                </span>
               </div>
             )}
           </div>
         </section>
 
         {/* Products Table */}
-        <section className="px-8 py-4 flex-1 overflow-hidden flex flex-col mb-4">
-          <div className="bg-[#112115] border border-[#3d4a3b] rounded-xl shadow-sm flex flex-col h-full overflow-hidden">
-            <div className="flex-1 overflow-y-auto relative no-scrollbar">
+        <section className="px-4 md:px-8 py-4 mb-4">
+          <div className="bg-[#112115] border border-[#3d4a3b] rounded-xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto relative no-scrollbar">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-10 bg-[#224128] text-xs uppercase text-[#bccbb6] tracking-wider font-bold shadow-sm">
                   <tr>

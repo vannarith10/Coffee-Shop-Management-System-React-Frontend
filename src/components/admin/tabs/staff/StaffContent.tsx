@@ -128,18 +128,20 @@ export default function StaffContent() {
   return (
     <>
       {/* Page Header */}
-      <header className="px-8 pt-8 pb-4 flex-shrink-0">
-        <div className="flex flex-wrap justify-between items-end gap-4">
-          <div className="flex min-w-72 flex-col gap-1">
-            <h2 className="text-3xl font-black tracking-tight dark:text-white">Staff Management</h2>
-            <p className="text-slate-500 dark:text-[#9db8a4] text-base">
+      <header className="px-4 md:px-8 pt-6 md:pt-8 pb-4 flex-shrink-0">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div className="flex flex-col gap-1 min-w-0">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight dark:text-white truncate">
+              Staff Management
+            </h2>
+            <p className="text-slate-500 dark:text-[#9db8a4] text-sm md:text-base">
               Oversee your team and manage shift schedules.
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
                 search
               </span>
@@ -148,30 +150,38 @@ export default function StaffContent() {
                 placeholder="Search employees..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-lg text-sm focus:ring-primary focus:border-primary dark:text-white w-64 shadow-sm outline-none"
+                className="w-full sm:w-64 pl-10 pr-4 py-2 bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-lg text-sm focus:ring-primary focus:border-primary dark:text-white shadow-sm outline-none"
               />
             </div>
 
             {/* Add Employee */}
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 cursor-pointer text-white rounded-lg text-sm font-bold shadow-md hover:bg-opacity-90 transition-all"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 cursor-pointer text-white rounded-lg text-sm font-bold shadow-md hover:bg-opacity-90 transition-all whitespace-nowrap"
             >
-              <span className="material-symbols-outlined text-lg">person_add</span>
-              <span>Add New Employee</span>
+              <span className="material-symbols-outlined text-lg">
+                person_add
+              </span>
+              <span>Add Employee</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Filter Chips */}
-      <StaffFilterChips active={filter} counts={counts} onChange={setFilter} />
+      <div className="px-4 md:px-8">
+        <StaffFilterChips
+          active={filter}
+          counts={counts}
+          onChange={setFilter}
+        />
+      </div>
 
       {/* Table container */}
-      <section className="px-8 py-4 mb-8 flex-1 overflow-hidden">
+      <section className="px-4 md:px-8 py-4 mb-8">
         <div
           ref={tableWrapRef}
-          className="h-full bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl shadow-sm overflow-y-auto relative scroll-smooth"
+          className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl shadow-sm overflow-x-auto relative scroll-smooth no-scrollbar"
         >
           {/* ── Initial loading skeleton ── */}
           {initialLoading && (

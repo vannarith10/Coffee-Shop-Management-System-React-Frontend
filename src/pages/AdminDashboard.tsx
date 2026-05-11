@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const user = getUser();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // API Data State
   const [summaryData, setSummaryData] = useState<SummaryResponse | null>(null);
@@ -131,11 +132,31 @@ export default function AdminDashboard() {
       <div className="flex h-screen overflow-hidden bg-[#f6f8f6] dark:bg-[#112115] font-['Inter',sans-serif] text-slate-900 dark:text-slate-100 antialiased">
         <Sidebar
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            setIsMobileMenuOpen(false);
+          }}
           onLogout={handleLogout}
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
         />
 
-        <main className="flex-1 overflow-y-auto scroll-smooth">
+        <main className="flex-1 overflow-y-auto scroll-smooth relative">
+          {/* Mobile Header Toggle */}
+          <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-[#0d1a10] border-b border-slate-200 dark:border-[#29382d] sticky top-0 z-20">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[#7c2d12] flex items-center justify-center text-white">
+                <span className="material-symbols-outlined text-xl">coffee</span>
+              </div>
+              <span className="font-bold">A5 Coffee</span>
+            </div>
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a2e1e]"
+            >
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+          </div>
           {!["staff", "products", "reports", "settings"].includes(activeTab) && (
             <DashboardHeader
               activeTab={activeTab}

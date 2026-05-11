@@ -91,7 +91,7 @@ export default function LowStockTable() {
   };
 
   return (
-    <section className="px-8 py-4 mb-10">
+    <section className="px-4 md:px-8 py-4 mb-10">
       <div className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl shadow-sm overflow-hidden">
 
         {/* ── Header ── */}
@@ -185,12 +185,12 @@ export default function LowStockTable() {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full ${cfg.className}`}
+                          className={`inline-flex items-center gap-1 px-2 md:px-2.5 py-1 text-xs font-bold rounded-full ${cfg.className}`}
                         >
-                          <span className="material-symbols-outlined text-[13px] leading-none">
+                          <span className="material-symbols-outlined text-[14px] md:text-[13px] leading-none">
                             {cfg.icon}
                           </span>
-                          {cfg.label}
+                          <span className="hidden sm:inline">{cfg.label}</span>
                         </span>
                       </td>
                     </tr>

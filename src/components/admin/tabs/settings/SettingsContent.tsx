@@ -38,7 +38,7 @@ export default function SettingsContent() {
   const [showModal, setShowModal] = useState(false);
 
   // Shop Profile State
-  const [shopName, setShopName] = useState('Morning Roast Coffee Co.');
+  const [shopName, setShopName] = useState('A5 Coffee');
   const [contact, setContact] = useState('+1 (555) 123-4567');
   const [address, setAddress] = useState('123 Espresso Way, Downtown District, Seattle, WA 98101');
   const [region, setRegion] = useState('');
@@ -123,18 +123,20 @@ export default function SettingsContent() {
 
       <div className="flex-1 overflow-x-hidden">
         {/* Header */}
-        <header className="p-8 pb-0">
-          <div className="flex flex-wrap justify-between items-end gap-4 mb-6">
-            <div className="flex min-w-72 flex-col gap-1">
-              <h2 className="text-3xl font-black tracking-tight dark:text-white">System Settings</h2>
-              <p className="text-slate-500 dark:text-[#9db8a4] text-base">
+        <header className="px-4 md:px-8 pt-6 md:pt-8 pb-0">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-6">
+            <div className="flex flex-col gap-1 min-w-0">
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight dark:text-white truncate">
+                System Settings
+              </h2>
+              <p className="text-slate-500 dark:text-[#9db8a4] text-sm md:text-base">
                 Customize your interface and system behavior.
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowModal(true)}
-                className="px-6 py-2 bg-[#14b83d] text-white rounded-lg text-sm font-bold shadow-md hover:bg-opacity-90 transition-all"
+                className="flex-1 sm:flex-none px-6 py-2 bg-[#14b83d] text-white rounded-lg text-sm font-bold shadow-md hover:bg-opacity-90 transition-all whitespace-nowrap"
               >
                 Save Changes
               </button>
@@ -142,25 +144,25 @@ export default function SettingsContent() {
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-slate-200 dark:border-[#29382d]">
+          <div className="flex border-b border-slate-200 dark:border-[#29382d] overflow-x-auto no-scrollbar">
             <button
-              onClick={() => setActiveTab('Shop Profile')}
+              onClick={() => setActiveTab("Shop Profile")}
               className={
-                'px-6 py-3 text-sm font-medium transition-colors ' +
-                (activeTab === 'Shop Profile'
-                  ? 'tab-active font-bold'
-                  : 'text-slate-500 dark:text-[#9db8a4] hover:text-[#14b83d]')
+                "px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap " +
+                (activeTab === "Shop Profile"
+                  ? "tab-active font-bold"
+                  : "text-slate-500 dark:text-[#9db8a4] hover:text-[#14b83d]")
               }
             >
               Shop Profile
             </button>
             <button
-              onClick={() => setActiveTab('App Preferences')}
+              onClick={() => setActiveTab("App Preferences")}
               className={
-                'px-6 py-3 text-sm font-medium transition-colors ' +
-                (activeTab === 'App Preferences'
-                  ? 'tab-active font-bold'
-                  : 'text-slate-500 dark:text-[#9db8a4] hover:text-[#14b83d]')
+                "px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap " +
+                (activeTab === "App Preferences"
+                  ? "tab-active font-bold"
+                  : "text-slate-500 dark:text-[#9db8a4] hover:text-[#14b83d]")
               }
             >
               App Preferences
@@ -169,7 +171,7 @@ export default function SettingsContent() {
         </header>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           {activeTab === 'Shop Profile' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Form */}

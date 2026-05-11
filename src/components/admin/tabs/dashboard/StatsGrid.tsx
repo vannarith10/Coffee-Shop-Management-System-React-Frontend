@@ -28,7 +28,7 @@ function StatSkeleton() {
 
 export default function StatsGrid({ stats, loading, error }: StatsGridProps) {
   return (
-    <section className="px-8 py-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section className="px-4 md:px-8 py-4 grid grid-cols-1 md:grid-cols-3 gap-6">
       {loading && stats.length === 0 ? (
         <StatSkeleton />
       ) : stats.length > 0 ? (

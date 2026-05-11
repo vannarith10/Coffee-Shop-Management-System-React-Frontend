@@ -75,7 +75,7 @@ export default function TopProductsChart() {
       )}
 
       {/* ── Chart Card ───────────────────────────────────────────────────── */}
-      <section className="px-8 py-4">
+      <section className="px-4 md:px-8 py-4">
         <div className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
 
           {/* Header row */}
