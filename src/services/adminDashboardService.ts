@@ -6,6 +6,7 @@ import type {
   CreateEmployeeRequest,
   CreateEmployeeResponse,
 } from "../components/admin/tabs/staff/types";
+import type { ReportsResponse } from "../components/admin/tabs/reports/types";
 
 export interface ProductItem {
   id: string;
@@ -56,9 +57,13 @@ export const dashboardService = {
     return response.data;
   },
 
-  async getDetailedReports(startDate: string, endDate: string): Promise<any> {
-    const response = await api.get(
-      `/api/v1/admin-dashboard/reports?start=${startDate}&end=${endDate}`,
+  async getReports(year?: number, month?: number): Promise<ReportsResponse> {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year.toString());
+    if (month) params.append("month", month.toString());
+    
+    const response = await api.get<ReportsResponse>(
+      `/api/v1/admin-dashboard/reports${params.toString() ? `?${params.toString()}` : ""}`
     );
     return response.data;
   },

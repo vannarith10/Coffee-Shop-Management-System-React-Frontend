@@ -124,3 +124,12 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;     /* Firefox */
 }
+
+@keyframes spin-once {
+  from { transform: rotate(-90deg); }
+  to { transform: rotate(270deg); }
+}
+
+.animate-spin-once {
+  animation: spin-once 3s ease-in-out forwards;
+}
