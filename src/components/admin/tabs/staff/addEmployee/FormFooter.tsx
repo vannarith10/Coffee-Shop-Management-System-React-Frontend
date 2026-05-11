@@ -30,7 +30,7 @@ export default function FormFooter({ onClose, onSubmit, isLoading }: FormFooterP
           type="submit"
           onClick={onSubmit}
           disabled={isLoading}
-          className="px-6 py-2.5 text-sm font-bold bg-primary text-white rounded-lg shadow-md hover:bg-opacity-90 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="px-6 py-2.5 text-sm font-bold bg-[#14b83d] text-white rounded-lg shadow-md hover:bg-opacity-90 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>

@@ -20,8 +20,8 @@ export default function EditWorkingDaysPicker({ selectedDays, onToggle }: EditWo
               onClick={() => onToggle(day.id)}
               className={`flex-1 min-w-[45px] py-2 flex items-center justify-center text-[10px] font-bold rounded-lg border cursor-pointer transition-all ${
                 selected
-                  ? 'bg-primary border-primary text-white'
-                  : 'bg-white dark:bg-[#1a2e1e] border-slate-200 dark:border-[#3c5342] text-slate-500 dark:text-[#9db8a4] hover:border-primary'
+                  ? 'bg-[#14b83d] border-[#14b83d] text-white shadow-sm'
+                  : 'bg-white dark:bg-[#1a2e1e] border-slate-200 dark:border-[#3c5342] text-slate-500 dark:text-[#9db8a4] hover:border-[#14b83d]'
               }`}
             >
               {day.label}

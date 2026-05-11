@@ -78,7 +78,7 @@ export default function AccountSettingsFields({
           <div className="flex items-center gap-2">
             <span
               className={`w-2 h-2 rounded-full transition-colors ${
-                formData.isActive ? 'bg-primary' : 'bg-slate-400'
+                formData.isActive ? 'bg-[#14b83d]' : 'bg-slate-400'
               }`}
             />
             <span className="text-sm font-medium dark:text-slate-200">
@@ -92,7 +92,7 @@ export default function AccountSettingsFields({
               onChange={(e) => onActiveToggle(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-9 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white" />
+            <div className="w-9 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-[#14b83d] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white" />
           </label>
         </div>
       </div>

@@ -9,4 +9,5 @@ export interface EditStaffFormData {
   isActive: boolean;
   newPassword: string;
   confirmPassword: string;
+  avatarFile?: File;
 }

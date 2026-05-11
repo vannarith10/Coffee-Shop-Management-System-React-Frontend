@@ -16,7 +16,7 @@ export default function EditFormFooter({ onClose, onSubmit }: EditFormFooterProp
       <button
         type="submit"
         onClick={onSubmit}
-        className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-bold shadow-md hover:bg-opacity-90 transition-all flex items-center gap-2"
+        className="px-6 py-2.5 bg-[#14b83d] text-white rounded-lg text-sm font-bold shadow-md hover:bg-opacity-90 transition-all flex items-center gap-2"
       >
         <span className="material-symbols-outlined text-base">save</span>
         Save Changes
