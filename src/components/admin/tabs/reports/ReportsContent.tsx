@@ -50,15 +50,27 @@ export default function ReportsContent() {
     setError(null);
     try {
       const response = await dashboardService.getReports(selectedYear, selectedMonth);
+      console.log('Reports API response:', response);
       if (!response || !response.summary) {
-        throw new Error('Invalid response structure from server');
+        throw new Error('Invalid response structure: "summary" field is missing.');
       }
       setData(response);
       // Small delay to ensure the DOM is ready for transition
       setTimeout(() => setAnimate(true), 50);
     } catch (err: any) {
       console.error('Error fetching reports:', err);
-      setError(err.message || 'Failed to fetch reports. Please check if the API endpoint is available.');
+      let errorMsg = 'Failed to fetch reports.';
+      if (err.response) {
+        // The server responded with a status code that falls out of the range of 2xx
+        errorMsg = `Server Error (${err.response.status}): ${err.response.data?.message || err.message}`;
+      } else if (err.request) {
+        // The request was made but no response was received
+        errorMsg = 'Network Error: No response received from server. Please check your connection.';
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        errorMsg = err.message;
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -140,14 +152,25 @@ export default function ReportsContent() {
         <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
           <span className="material-symbols-outlined text-4xl">error</span>
         </div>
-        <h3 className="text-xl font-bold mb-2">Oops! Something went wrong</h3>
-        <p className="text-slate-500 dark:text-[#9db8a4] mb-6 max-w-md">{error}</p>
-        <button 
-          onClick={fetchReports}
-          className="bg-[#14b83d] hover:bg-[#14b83d]/90 text-white rounded-lg px-6 py-2 font-bold transition-all shadow-md active:scale-95"
-        >
-          Try Again
-        </button>
+        <h3 className="text-xl font-bold mb-2">Reports Unreachable</h3>
+        <p className="text-slate-500 dark:text-[#9db8a4] mb-6 max-w-lg font-mono text-sm bg-slate-100 dark:bg-black/20 p-4 rounded-lg">
+          {error}
+        </p>
+        <div className="flex gap-4">
+          <button 
+            onClick={fetchReports}
+            className="bg-[#14b83d] hover:bg-[#14b83d]/90 text-white rounded-lg px-6 py-2 font-bold transition-all shadow-md active:scale-95 flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-[18px]">refresh</span>
+            Try Again
+          </button>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-slate-200 dark:bg-[#3c5342] hover:opacity-80 text-slate-700 dark:text-white rounded-lg px-6 py-2 font-bold transition-all active:scale-95"
+          >
+            Reload App
+          </button>
+        </div>
       </div>
     );
   }
