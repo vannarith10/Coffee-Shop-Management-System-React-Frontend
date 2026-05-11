@@ -31,6 +31,7 @@ const heatmapHours = ['12AM', '4AM', '8AM', '12PM', '4PM', '8PM', '11PM'];
 export default function ReportsContent() {
   const [data, setData] = useState<ReportsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [animate, setAnimate] = useState(false);
   
   // Get current date for defaults
@@ -46,13 +47,18 @@ export default function ReportsContent() {
   const fetchReports = async () => {
     setLoading(true);
     setAnimate(false);
+    setError(null);
     try {
       const response = await dashboardService.getReports(selectedYear, selectedMonth);
+      if (!response || !response.summary) {
+        throw new Error('Invalid response structure from server');
+      }
       setData(response);
       // Small delay to ensure the DOM is ready for transition
       setTimeout(() => setAnimate(true), 50);
-    } catch (error) {
-      console.error('Error fetching reports:', error);
+    } catch (err: any) {
+      console.error('Error fetching reports:', err);
+      setError(err.message || 'Failed to fetch reports. Please check if the API endpoint is available.');
     } finally {
       setLoading(false);
     }
@@ -64,7 +70,7 @@ export default function ReportsContent() {
 
   // Calculations for Revenue Trends Chart
   const maxRevenue = useMemo(() => {
-    if (!data?.revenue_trends.length) return 100;
+    if (!data?.revenue_trends || !data.revenue_trends.length) return 100;
     const max = Math.max(...data.revenue_trends);
     return max === 0 ? 100 : max * 1.2; // Add 20% headroom
   }, [data]);
@@ -85,7 +91,7 @@ export default function ReportsContent() {
     let currentOffset = 0;
     return data.sales_by_category.map(cat => {
       const offset = currentOffset;
-      currentOffset -= cat.percentage;
+      currentOffset -= cat.percentage || 0;
       return offset;
     });
   }, [data]);
@@ -95,15 +101,17 @@ export default function ReportsContent() {
     if (!data?.busies_hours) return 1;
     let max = 0;
     data.busies_hours.forEach(day => {
-      day.forEach(hour => {
-        if (hour > max) max = hour;
-      });
+      if (Array.isArray(day)) {
+        day.forEach(hour => {
+          if (hour > max) max = hour;
+        });
+      }
     });
     return max === 0 ? 1 : max;
   }, [data]);
 
   const hasCategoryData = useMemo(() => {
-    return data?.sales_by_category && data.sales_by_category.length > 0 && data.summary.net_revenue.value > 0;
+    return data?.sales_by_category && data.sales_by_category.length > 0 && (data.summary?.net_revenue?.value || 0) > 0;
   }, [data]);
 
   const getHeatmapColor = (value: number) => {
@@ -117,11 +125,29 @@ export default function ReportsContent() {
 
   if (loading && !data) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-[#14b83d] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-500 font-medium">Loading reports...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[400px] text-center">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
+          <span className="material-symbols-outlined text-4xl">error</span>
+        </div>
+        <h3 className="text-xl font-bold mb-2">Oops! Something went wrong</h3>
+        <p className="text-slate-500 dark:text-[#9db8a4] mb-6 max-w-md">{error}</p>
+        <button 
+          onClick={fetchReports}
+          className="bg-[#14b83d] hover:bg-[#14b83d]/90 text-white rounded-lg px-6 py-2 font-bold transition-all shadow-md active:scale-95"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -176,12 +202,12 @@ export default function ReportsContent() {
             <div className="w-10 h-10 rounded-lg bg-[#14b83d]/10 flex items-center justify-center text-[#14b83d]">
               <span className="material-symbols-outlined">payments</span>
             </div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${data.summary.gross_profit.growth_ptc >= 0 ? 'text-[#14b83d] bg-[#14b83d]/10' : 'text-red-500 bg-red-500/10'}`}>
-              {data.summary.gross_profit.growth_ptc >= 0 ? '+' : ''}{data.summary.gross_profit.growth_ptc.toFixed(1)}%
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${ (data.summary?.gross_profit?.growth_ptc || 0) >= 0 ? 'text-[#14b83d] bg-[#14b83d]/10' : 'text-red-500 bg-red-500/10'}`}>
+              {(data.summary?.gross_profit?.growth_ptc || 0) >= 0 ? '+' : ''}{(data.summary?.gross_profit?.growth_ptc || 0).toFixed(1)}%
             </span>
           </div>
           <p className="text-slate-500 dark:text-[#9db8a4] text-sm font-medium">Gross Profit</p>
-          <p className="text-3xl font-bold tracking-tight mt-1">${data.summary.gross_profit.value.toLocaleString()}</p>
+          <p className="text-3xl font-bold tracking-tight mt-1">${(data.summary?.gross_profit?.value || 0).toLocaleString()}</p>
         </div>
 
         <div className="rounded-xl p-6 bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] shadow-sm">
@@ -189,12 +215,12 @@ export default function ReportsContent() {
             <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
               <span className="material-symbols-outlined">account_balance_wallet</span>
             </div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${data.summary.net_revenue.growth_ptc >= 0 ? 'text-blue-500 bg-blue-500/10' : 'text-red-500 bg-red-500/10'}`}>
-              {data.summary.net_revenue.growth_ptc >= 0 ? '+' : ''}{data.summary.net_revenue.growth_ptc.toFixed(1)}%
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${(data.summary?.net_revenue?.growth_ptc || 0) >= 0 ? 'text-blue-500 bg-blue-500/10' : 'text-red-500 bg-red-500/10'}`}>
+              {(data.summary?.net_revenue?.growth_ptc || 0) >= 0 ? '+' : ''}{(data.summary?.net_revenue?.growth_ptc || 0).toFixed(1)}%
             </span>
           </div>
           <p className="text-slate-500 dark:text-[#9db8a4] text-sm font-medium">Net Revenue</p>
-          <p className="text-3xl font-bold tracking-tight mt-1">${data.summary.net_revenue.value.toLocaleString()}</p>
+          <p className="text-3xl font-bold tracking-tight mt-1">${(data.summary?.net_revenue?.value || 0).toLocaleString()}</p>
         </div>
       </section>
 
@@ -239,7 +265,7 @@ export default function ReportsContent() {
               {/* Bars */}
               <div className="relative h-[450px] flex flex-col">
                 <div className="flex-1 flex items-end justify-between px-1 gap-[2px]">
-                  {data.revenue_trends.map((val, i) => (
+                  {data?.revenue_trends?.map((val, i) => (
                     <div
                       key={i}
                       className="flex-1 rounded-t-[1px] bg-[#14b83d] hover:bg-[#14b83d]/80 transition-[height,background-color] duration-[2000ms,200ms] ease-out cursor-help group relative"
@@ -254,8 +280,8 @@ export default function ReportsContent() {
                 </div>
                 {/* X-axis labels */}
                 <div className="flex justify-between px-1 h-8 pt-2">
-                  {data.revenue_trends.map((_, i) => (
-                    <span key={i} className={`flex-1 text-[9px] text-slate-400 font-bold text-center ${data.revenue_trends.length > 20 && i % 2 !== 0 ? 'hidden md:block' : ''}`}>
+                  {data?.revenue_trends?.map((_, i) => (
+                    <span key={i} className={`flex-1 text-[9px] text-slate-400 font-bold text-center ${(data?.revenue_trends?.length || 0) > 20 && i % 2 !== 0 ? 'hidden md:block' : ''}`}>
                       {i + 1}
                     </span>
                   ))}
@@ -307,21 +333,21 @@ export default function ReportsContent() {
                   )}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-4xl font-bold">${data.summary.net_revenue.value.toLocaleString()}</span>
+                  <span className="text-4xl font-bold">${(data.summary?.net_revenue?.value || 0).toLocaleString()}</span>
                   <span className="text-xs uppercase text-slate-400 font-black tracking-widest mt-1">Total Revenue</span>
                 </div>
               </div>
 
               {/* Legend */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6 flex-1 max-w-3xl">
-                {data.sales_by_category.map((cat, i) => (
+                {data?.sales_by_category?.map((cat, i) => (
                   <div key={cat.label} className="flex items-center gap-4 group">
                     <div className="w-1.5 h-12 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }}></div>
                     <div className="flex flex-col">
                       <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">{cat.label}</span>
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-black">{cat.percentage}%</span>
-                        <span className="text-xs text-slate-500">${cat.revenue.toLocaleString()}</span>
+                        <span className="text-xs text-slate-500">${(cat.revenue || 0).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -365,7 +391,7 @@ export default function ReportsContent() {
                 </div>
                 
                 {/* Rows */}
-                {data.busies_hours.map((row, rowIdx) => (
+                {data?.busies_hours?.map((row, rowIdx) => (
                   <React.Fragment key={rowIdx}>
                     {/* Day Label */}
                     <span className="text-[12px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
@@ -373,7 +399,7 @@ export default function ReportsContent() {
                     </span>
                     
                     {/* 24 Hour Cells for this day */}
-                    {row.map((val, colIdx) => (
+                    {Array.isArray(row) && row.map((val, colIdx) => (
                       <div
                         key={`${rowIdx}-${colIdx}`}
                         className={`rounded-md aspect-square transition-all hover:scale-110 hover:z-10 cursor-pointer shadow-sm ${getHeatmapColor(val)}`}
