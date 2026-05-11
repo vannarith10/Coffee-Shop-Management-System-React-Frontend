@@ -103,16 +103,30 @@ export default function StaffContent() {
     };
   }, [anyModalOpen, handleKeyDown]);
 
+  // ── Role sorting priority ──────────────────────────────────────────────────
+  const ROLE_PRIORITY: Record<string, number> = {
+    ADMIN: 1,
+    CASHIER: 2,
+    BARISTA: 3,
+    STAFF: 4
+  };
+
   // ── Filter + search (client-side over accumulated data) ───────────────────
-  const filteredStaff = allStaff.filter((member) => {
-    const matchesFilter = filter === 'ALL' || member.role === filter;
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      member.name.toLowerCase().includes(q) ||
-      member.email.toLowerCase().includes(q) ||
-      member.id.toLowerCase().includes(q);
-    return matchesFilter && matchesSearch;
-  });
+  const filteredStaff = allStaff
+    .filter((member) => {
+      const matchesFilter = filter === 'ALL' || member.role === filter;
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        member.name.toLowerCase().includes(q) ||
+        member.email.toLowerCase().includes(q) ||
+        member.id.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    })
+    .sort((a, b) => {
+      const priorityA = ROLE_PRIORITY[a.role] ?? 99;
+      const priorityB = ROLE_PRIORITY[b.role] ?? 99;
+      return priorityA - priorityB;
+    });
 
   const counts: Record<FilterOption, number> = {
     ALL:     totalItems,
