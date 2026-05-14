@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { EmployeeFormData } from '../types';
 import { INPUT_CLASS, LABEL_CLASS } from './constants';
 
@@ -12,6 +13,8 @@ export default function AccountSettingsFields({
   onChange,
   onActiveToggle,
 }: AccountSettingsFieldsProps) {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="space-y-4">
       {/* Role + Shift */}
@@ -55,33 +58,71 @@ export default function AccountSettingsFields({
           onChange={onChange}
           placeholder="j.doe"
           className={INPUT_CLASS}
+          autoComplete="off"
         />
       </div>
 
       {/* Temp Password */}
       <div>
         <label className={LABEL_CLASS}>Temporary Password</label>
-        <input
-          type="password"
-          name="password"
-          value={formData.password}
-          onChange={onChange}
-          placeholder="••••••••"
-          className={INPUT_CLASS}
-        />
+        <div className="relative">
+          {(() => {
+            const isStrong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/.test(formData.password);
+            return (
+              <>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={onChange}
+                  placeholder="••••••••"
+                  className={`${INPUT_CLASS} pr-10 transition-all duration-300 ${
+                    isStrong 
+                      ? 'border-[#14b83d] dark:border-[#14b83d] ring-2 ring-[#14b83d]/10' 
+                      : ''
+                  }`}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${
+                    isStrong ? 'text-[#14b83d]' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              </>
+            );
+          })()}
+        </div>
+        {/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/.test(formData.password) && (
+          <p className="mt-1.5 text-[10px] font-bold text-[#14b83d] animate-in fade-in slide-in-from-top-1 duration-300 flex items-center gap-1">
+            <span className="material-symbols-outlined text-xs">check_circle</span>
+            Password is now strong
+          </p>
+        )}
       </div>
 
       {/* Account Status Toggle */}
       <div>
         <label className={LABEL_CLASS}>Account Status</label>
-        <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#3c5342] rounded-lg">
+        <div className={`flex items-center justify-between p-2.5 rounded-lg border transition-all duration-300 ${
+          formData.isActive 
+            ? 'bg-green-50/50 dark:bg-[#14b83d]/5 border-[#14b83d]/30' 
+            : 'bg-slate-50 dark:bg-[#112115] border-slate-200 dark:border-[#3c5342]'
+        }`}>
           <div className="flex items-center gap-2">
             <span
               className={`w-2 h-2 rounded-full transition-colors ${
-                formData.isActive ? 'bg-[#14b83d]' : 'bg-slate-400'
+                formData.isActive ? 'bg-[#14b83d] shadow-[0_0_8px_rgba(20,184,61,0.5)]' : 'bg-slate-400'
               }`}
             />
-            <span className="text-sm font-medium dark:text-slate-200">
+            <span className={`text-sm font-bold transition-colors ${
+              formData.isActive ? 'text-[#14b83d]' : 'text-slate-500 dark:text-[#9db8a4]'
+            }`}>
               {formData.isActive ? 'Active' : 'Inactive'}
             </span>
           </div>

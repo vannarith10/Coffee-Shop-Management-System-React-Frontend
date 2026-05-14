@@ -10,7 +10,7 @@ export default function EditWorkingDaysPicker({ selectedDays, onToggle }: EditWo
   return (
     <div>
       <span className={LABEL_CLASS}>Working Days</span>
-      <div className="flex flex-wrap gap-2 mt-1.5">
+      <div className="flex gap-2 mt-1.5">
         {WEEKDAYS.map((day) => {
           const selected = selectedDays.includes(day.id);
           return (

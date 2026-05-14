@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { EditStaffFormData } from './types';
 import { INPUT_CLASS, LABEL_CLASS } from './constants';
 
@@ -7,6 +8,10 @@ interface SecuritySectionProps {
 }
 
 export default function SecuritySection({ formData, onChange }: SecuritySectionProps) {
+  const [showPassword, setShowPassword] = useState(false);
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+  const isStrong = passwordRegex.test(formData.newPassword);
+
   return (
     <div className="pt-6 border-t border-slate-100 dark:border-[#29382d]">
       <div className="flex items-center gap-2 mb-4">
@@ -19,23 +24,47 @@ export default function SecuritySection({ formData, onChange }: SecuritySectionP
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className={LABEL_CLASS}>New Password</label>
-          <input
-            type="password"
-            name="newPassword"
-            value={formData.newPassword}
-            onChange={onChange}
-            placeholder="••••••••"
-            className={INPUT_CLASS}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={onChange}
+              placeholder="Leave blank to keep current"
+              autoComplete="new-password"
+              className={`${INPUT_CLASS} pr-10 transition-all duration-300 ${
+                formData.newPassword && isStrong 
+                  ? 'border-[#14b83d] dark:border-[#14b83d] ring-2 ring-[#14b83d]/10' 
+                  : ''
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${
+                formData.newPassword && isStrong ? 'text-[#14b83d]' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+              }`}
+            >
+              <span className="material-symbols-outlined text-xl">
+                {showPassword ? 'visibility' : 'visibility_off'}
+              </span>
+            </button>
+          </div>
+          {formData.newPassword && isStrong && (
+            <p className="mt-1.5 text-[10px] font-bold text-[#14b83d] animate-in fade-in slide-in-from-top-1 duration-300 flex items-center gap-1">
+              <span className="material-symbols-outlined text-xs">check_circle</span>
+              Password is now strong
+            </p>
+          )}
         </div>
         <div>
           <label className={LABEL_CLASS}>Confirm New Password</label>
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={onChange}
-            placeholder="••••••••"
+            placeholder="Confirm new password"
             className={INPUT_CLASS}
           />
         </div>

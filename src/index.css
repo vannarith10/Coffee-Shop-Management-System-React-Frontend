@@ -133,3 +133,9 @@
 .animate-spin-once {
   animation: spin-once 3s ease-in-out forwards;
 }
+
+/* Hide native browser password reveal/clear buttons (avoids "double eye" issue) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

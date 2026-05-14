@@ -3,10 +3,17 @@ import { INPUT_CLASS, LABEL_CLASS } from './constants';
 
 interface StaffInfoFieldsProps {
   formData: Pick<EditStaffFormData, 'staffName' | 'username' | 'email' | 'phone'>;
+  currentStaffName?: string;
+  currentUsername?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
 }
 
-export default function StaffInfoFields({ formData, onChange }: StaffInfoFieldsProps) {
+export default function StaffInfoFields({ 
+  formData, 
+  currentStaffName,
+  currentUsername,
+  onChange 
+}: StaffInfoFieldsProps) {
   return (
     <div className="space-y-4">
       {/* Staff Name */}
@@ -17,7 +24,7 @@ export default function StaffInfoFields({ formData, onChange }: StaffInfoFieldsP
           name="staffName"
           value={formData.staffName}
           onChange={onChange}
-          placeholder="Full Name"
+          placeholder={currentStaffName || "Full Name"}
           className={INPUT_CLASS}
         />
       </div>
@@ -30,8 +37,9 @@ export default function StaffInfoFields({ formData, onChange }: StaffInfoFieldsP
           name="username"
           value={formData.username}
           onChange={onChange}
-          placeholder="Enter username"
+          placeholder={currentUsername || "Enter username"}
           className={INPUT_CLASS}
+          autoComplete="off"
         />
       </div>
 
@@ -44,7 +52,7 @@ export default function StaffInfoFields({ formData, onChange }: StaffInfoFieldsP
             name="email"
             value={formData.email}
             onChange={onChange}
-            placeholder="Email"
+            placeholder={formData.email || "Email"}
             className={INPUT_CLASS}
           />
         </div>
@@ -55,7 +63,7 @@ export default function StaffInfoFields({ formData, onChange }: StaffInfoFieldsP
             name="phone"
             value={formData.phone}
             onChange={onChange}
-            placeholder="Phone"
+            placeholder={formData.phone || "Phone Number"}
             className={INPUT_CLASS}
           />
         </div>

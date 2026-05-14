@@ -48,18 +48,31 @@ export default function RoleShiftStatusFields({
       {/* Account Status */}
       <div>
         <label className={LABEL_CLASS}>Account Status</label>
-        <div className="flex items-center gap-3 py-1">
+        <div className={`flex items-center justify-between p-2.5 rounded-lg border transition-all duration-300 ${
+          formData.isActive 
+            ? 'bg-green-50/50 dark:bg-[#14b83d]/5 border-[#14b83d]/30' 
+            : 'bg-slate-50 dark:bg-[#112115] border-slate-200 dark:border-[#3c5342]'
+        }`}>
+          <div className="flex items-center gap-2">
+            <span
+              className={`w-2 h-2 rounded-full transition-colors ${
+                formData.isActive ? 'bg-[#14b83d] shadow-[0_0_8px_rgba(20,184,61,0.5)]' : 'bg-slate-400'
+              }`}
+            />
+            <span className={`text-sm font-bold transition-colors ${
+              formData.isActive ? 'text-[#14b83d]' : 'text-slate-500 dark:text-[#9db8a4]'
+            }`}>
+              {formData.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
-              className="sr-only peer"
               checked={formData.isActive}
               onChange={(e) => onActiveToggle(e.target.checked)}
+              className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#14b83d] transition-colors" />
-            <span className="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-              {formData.isActive ? 'Active' : 'Inactive'}
-            </span>
+            <div className="w-9 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-[#14b83d] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white" />
           </label>
         </div>
       </div>

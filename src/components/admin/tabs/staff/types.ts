@@ -45,6 +45,7 @@ export type EmployeeFormData = {
   username: string;
   password: string;
   isActive: boolean;
+  avatarFile?: File;
 };
 
 // ── Create-employee API types ────────────────────────────────────────────────
@@ -56,6 +57,7 @@ export type CreateEmployeeRequest = {
   shift: StaffShift;
   schedules: StaffScheduleDay[];
   status: 'ACTIVE' | 'INACTIVE';
+  image?: File;
 };
 
 export type CreateEmployeeResponse = {
@@ -69,6 +71,19 @@ export type CreateEmployeeResponse = {
   phone_number: string;
   status: 'ACTIVE' | 'INACTIVE';
   image_url: string;
+};
+
+// ── Edit-staff API types ────────────────────────────────────────────────────
+export type EditStaffRequest = {
+  name?: string;
+  username?: string;
+  password?: string;
+  role?: StaffRole;
+  is_active?: boolean;
+  status?: 'ACTIVE' | 'ON_LEAVE' | 'INACTIVE';
+  shift_type?: StaffShift;
+  schedules?: StaffScheduleDay[];
+  image?: File;
 };
 
 // ── Staff member (table row) type ────────────────────────────────────────────

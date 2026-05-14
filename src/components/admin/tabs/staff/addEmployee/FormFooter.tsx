@@ -17,7 +17,7 @@ export default function FormFooter({ onClose, onSubmit, isLoading }: FormFooterP
       </div>
 
       {/* Footer Actions */}
-      <div className="px-8 py-5 bg-slate-50 dark:bg-[#142618] border-t border-slate-100 dark:border-[#29382d] flex justify-end gap-3 mt-8 -mx-8 -mb-8 rounded-b-2xl">
+      <div className="px-5 sm:px-8 py-5 bg-slate-50 dark:bg-[#142618] border-t border-slate-100 dark:border-[#29382d] flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8 -mx-5 sm:-mx-8 md:-mx-10 -mb-5 sm:-mb-8 md:-mb-10 rounded-b-2xl">
         <button
           type="button"
           onClick={onClose}
@@ -30,7 +30,7 @@ export default function FormFooter({ onClose, onSubmit, isLoading }: FormFooterP
           type="submit"
           onClick={onSubmit}
           disabled={isLoading}
-          className="px-6 py-2.5 text-sm font-bold bg-[#14b83d] text-white rounded-lg shadow-md hover:bg-opacity-90 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="px-6 py-2.5 text-sm font-bold bg-[#14b83d] text-white rounded-lg shadow-md hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>

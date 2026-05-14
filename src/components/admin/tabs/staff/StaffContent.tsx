@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { StaffAPI } from './types';
+import { StaffAPI, EditStaffRequest } from './types';
 import StaffFilterChips from './StaffFilterChips';
 import StaffTable, { StaffSkeletonRow } from './StaffTable';
 import AddEmployeeForm from './addEmployee';
 import EditEmployeeForm from './editEmployee';
+import { EditStaffFormData } from './editEmployee/types';
 import { dashboardService } from '../../../../services/adminDashboardService';
+import { toast } from 'sonner';
 
 type FilterOption = 'ALL' | 'STAFF' | 'BARISTA' | 'CASHIER' | 'ADMIN';
 
@@ -24,12 +26,20 @@ function toEditInitialData(member: StaffAPI) {
     FRIDAY: 'fri', SATURDAY: 'sat', SUNDAY: 'sun',
   };
 
+  const shiftMap: Record<StaffAPI['shift'], 'morning' | 'afternoon' | 'evening'> = {
+    MORNING:   'morning',
+    AFTERNOON: 'afternoon',
+    FULL_DAY:  'evening',
+  };
+
   return {
     staffName: member.name,
+    username: member.username,
     email: member.email,
     phone: member.phone_number ?? '',
-    workingDays: member.schedules.map((d) => dayMap[d]).filter(Boolean),
+    workingDays: member.schedules.map((d) => dayMap[d]).filter(Boolean) as any,
     role: roleMap[member.role],
+    shift: shiftMap[member.shift],
     isActive: member.status === 'ACTIVE',
   };
 }
@@ -137,6 +147,60 @@ export default function StaffContent() {
   };
 
   const hasMore = page < totalPages;
+
+  const handleEditSubmit = async (data: EditStaffFormData) => {
+    if (!editingMember) return;
+
+    try {
+      const roleMap: Record<string, StaffAPI['role']> = {
+        staff:   'STAFF',
+        barista: 'BARISTA',
+        cashier: 'CASHIER',
+        admin:   'ADMIN',
+      };
+
+      const shiftMap: Record<string, StaffAPI['shift']> = {
+        morning:   'MORNING',
+        afternoon: 'AFTERNOON',
+        evening:   'FULL_DAY',
+      };
+
+      const dayMap: Record<string, StaffAPI['schedules'][number]> = {
+        mon: 'MONDAY', tue: 'TUESDAY', wed: 'WEDNESDAY', thu: 'THURSDAY',
+        fri: 'FRIDAY', sat: 'SATURDAY', sun: 'SUNDAY',
+      };
+
+      const payload: EditStaffRequest = {
+        role: roleMap[data.role],
+        is_active: data.isActive,
+        status: data.isActive ? 'ACTIVE' : 'INACTIVE',
+        shift_type: shiftMap[data.shift],
+        schedules: data.workingDays.map(d => dayMap[d]),
+        image: data.avatarFile,
+      };
+
+      if (data.staffName.trim()) {
+        payload.name = data.staffName.trim();
+      }
+
+      if (data.username.trim()) {
+        payload.username = data.username.trim();
+      }
+
+      if (data.newPassword) {
+        payload.password = data.newPassword;
+      }
+
+      const updatedMember = await dashboardService.editStaff(editingMember.id, payload);
+      
+      setAllStaff(prev => prev.map(s => s.id === updatedMember.id ? updatedMember : s));
+      setEditingMember(null);
+      toast.success('Staff member updated successfully');
+    } catch (err) {
+      console.error('Failed to update staff:', err);
+      toast.error('Failed to update staff member');
+    }
+  };
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -281,24 +345,28 @@ export default function StaffContent() {
       {/* ── Add Employee Modal ── */}
       {showAddModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 overflow-y-auto"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="add-employee-title"
         >
+          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
             onClick={() => setShowAddModal(false)}
           />
-          <div className="relative z-10 w-full max-w-2xl">
-            <AddEmployeeForm
-              onClose={() => setShowAddModal(false)}
-              onSuccess={() => {
-                setShowAddModal(false);
-                setAllStaff([]);
-                fetchPage(1, false);
-              }}
-            />
+
+          {/* Modal Container */}
+          <div className="flex min-h-full items-center justify-center p-4 md:p-8">
+            <div className="relative z-10 w-full max-w-6xl">
+              <AddEmployeeForm
+                onClose={() => setShowAddModal(false)}
+                onSuccess={() => {
+                  setShowAddModal(false);
+                  setAllStaff([]);
+                  fetchPage(1, false);
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -306,26 +374,26 @@ export default function StaffContent() {
       {/* ── Edit Employee Modal ── */}
       {editingMember && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 overflow-y-auto"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="edit-employee-title"
         >
+          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
             onClick={() => setEditingMember(null)}
           />
-          <div className="relative z-10 w-full max-w-lg">
-            <EditEmployeeForm
-              staffName={editingMember.name}
-              avatarUrl={editingMember.image_url || undefined}
-              initialData={toEditInitialData(editingMember)}
-              onClose={() => setEditingMember(null)}
-              onSubmit={(data) => {
-                console.log('Updated employee:', data);
-                setEditingMember(null);
-              }}
-            />
+
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative z-10 w-full max-w-6xl">
+              <EditEmployeeForm
+                staffName={editingMember.name}
+                avatarUrl={editingMember.image_url || undefined}
+                initialData={toEditInitialData(editingMember)}
+                onClose={() => setEditingMember(null)}
+                onSubmit={handleEditSubmit}
+              />
+            </div>
           </div>
         </div>
       )}

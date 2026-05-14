@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 
 interface AvatarSectionProps {
   staffName: string;
@@ -13,57 +13,47 @@ export default function AvatarSection({ staffName, avatarUrl, onFileSelect }: Av
     const file = e.target.files?.[0];
     if (file) {
       onFileSelect(file);
-      // Reset input value so same file can be selected again
       e.target.value = '';
     }
   };
 
-  const displayUrl = avatarUrl;
-
   return (
-    <div className="flex flex-col items-center mb-6">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-
+    <div className="w-full">
+      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#9db8a4] mb-4">
+        Employee Photo
+      </label>
+      
       <div 
-        className="relative group cursor-pointer"
         onClick={() => fileInputRef.current?.click()}
+        className="relative group cursor-pointer w-full aspect-square bg-slate-50 dark:bg-[#112115] rounded-2xl border-2 border-dashed border-slate-200 dark:border-[#3c5342] flex flex-col items-center justify-center hover:border-[#14b83d] transition-all duration-300 overflow-hidden shadow-sm"
       >
-        {displayUrl ? (
-          <img
-            src={displayUrl}
-            alt={staffName}
-            className="w-24 h-24 rounded-full object-cover ring-4 ring-[#14b83d]/30 shadow-lg transition-transform group-hover:scale-105"
-          />
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          accept="image/*" 
+          onChange={handleFileChange} 
+        />
+        
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={staffName} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" />
         ) : (
-          <div className="w-24 h-24 rounded-full bg-[#14b83d]/10 flex items-center justify-center ring-4 ring-slate-200 dark:ring-[#29382d] transition-transform group-hover:scale-105">
-            <span className="text-3xl font-black text-[#14b83d]">
-              {staffName
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase()}
-            </span>
+          <div className="flex flex-col items-center text-slate-400 dark:text-[#3c5342] group-hover:text-[#14b83d] transition-colors text-center p-4">
+            <span className="material-symbols-outlined text-6xl mb-3" style={{ fontVariationSettings: "'wght' 200" }}>add_a_photo</span>
+            <p className="uppercase tracking-[0.2em] text-[10px] font-black">Change Photo</p>
           </div>
         )}
         
         {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-          <span className="material-symbols-outlined text-white text-2xl">photo_camera</span>
-        </div>
-
-        {/* Floating Button */}
-        <div className="absolute bottom-0 right-0 bg-[#14b83d] w-8 h-8 rounded-full border-4 border-white dark:border-[#112115] flex items-center justify-center text-white shadow-md">
-          <span className="material-symbols-outlined text-[18px] font-bold">add</span>
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+          <div className="bg-white/10 p-4 rounded-full border border-white/20">
+            <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+          </div>
         </div>
       </div>
-      <p className="mt-3 text-[10px] font-black text-[#bccbb6] uppercase tracking-widest">Click to change photo</p>
+      <p className="mt-4 text-[10px] text-center font-bold text-slate-400 dark:text-[#3c5342] uppercase tracking-widest">
+        Click to upload new avatar
+      </p>
     </div>
   );
 }

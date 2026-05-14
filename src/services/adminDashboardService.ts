@@ -5,6 +5,8 @@ import type {
   StaffProfilesResponse,
   CreateEmployeeRequest,
   CreateEmployeeResponse,
+  EditStaffRequest,
+  StaffAPI,
 } from "../components/admin/tabs/staff/types";
 import type { ReportsResponse } from "../components/admin/tabs/reports/types";
 
@@ -103,9 +105,31 @@ export const dashboardService = {
   async createEmployee(
     payload: CreateEmployeeRequest,
   ): Promise<CreateEmployeeResponse> {
+    const formData = new FormData();
+
+    // Separate the image from the data fields
+    const { image, ...dataFields } = payload;
+
+    // The backend expects "data" as a JSON part (AddNewEmployeeRequest)
+    // We use a Blob to specify the application/json content type for this part
+    const jsonBlob = new Blob([JSON.stringify(dataFields)], {
+      type: 'application/json',
+    });
+    formData.append('data', jsonBlob);
+
+    // The backend expects "image" as a multipart file part
+    if (image) {
+      formData.append('image', image);
+    }
+
     const response = await api.post<CreateEmployeeResponse>(
       '/api/v1/admin-dashboard/create-employee-account',
-      payload,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
     );
     return response.data;
   },
@@ -169,6 +193,38 @@ export const dashboardService = {
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' }
+      }
+    );
+    return response.data;
+  },
+
+  async editStaff(
+    id: string,
+    payload: EditStaffRequest,
+  ): Promise<StaffAPI> {
+    const formData = new FormData();
+
+    // Separate image from other fields
+    const { image, ...requestData } = payload;
+
+    // Backend expects 'request' as a JSON part
+    const jsonBlob = new Blob([JSON.stringify(requestData)], {
+      type: 'application/json',
+    });
+    formData.append('request', jsonBlob);
+
+    // Backend expects 'image' as a multipart file part
+    if (image) {
+      formData.append('image', image);
+    }
+
+    const response = await api.patch<StaffAPI>(
+      `/api/v1/admin-dashboard/edit/${id}/staff`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       }
     );
     return response.data;

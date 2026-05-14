@@ -1,4 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../../../../utils/cropImage';
+import { toast } from 'sonner';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -67,11 +70,55 @@ export default function SettingsContent() {
     sound: true,
   });
 
+  // Cropper states
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [isCropping, setIsCropping] = useState(false);
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLogoPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setImageToCrop(reader.result as string);
+        setIsCropping(true);
+      });
+      reader.readAsDataURL(file);
     }
+  };
+
+  const onCropComplete = useCallback((_extendedCroppedArea: any, pixelCrop: any) => {
+    setCroppedAreaPixels(pixelCrop);
+  }, []);
+
+  const handleCropSave = async () => {
+    if (!imageToCrop || !croppedAreaPixels) return;
+
+    try {
+      const croppedImageBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      if (croppedImageBlob) {
+        // Revoke previous preview if it was a blob URL
+        if (logoPreview && logoPreview.startsWith('blob:')) URL.revokeObjectURL(logoPreview);
+        
+        const newPreviewUrl = URL.createObjectURL(croppedImageBlob);
+        setLogoPreview(newPreviewUrl);
+        
+        setIsCropping(false);
+        setImageToCrop(null);
+        toast.success("Logo updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error cropping logo:", error);
+      toast.error("Failed to crop logo");
+    }
+  };
+
+  const handleCropCancel = () => {
+    setIsCropping(false);
+    setImageToCrop(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleConfirm = () => {
@@ -176,7 +223,7 @@ export default function SettingsContent() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Form */}
               <div className="lg:col-span-2">
-                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm min-h-[600px] flex flex-col">
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm flex flex-col">
                   <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[#14b83d]">store</span>
                     General Information
@@ -211,8 +258,8 @@ export default function SettingsContent() {
                       <textarea
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        rows={3}
-                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-none"
+                        rows={2}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-y min-h-[60px]"
                       />
                     </div>
 
@@ -239,40 +286,42 @@ export default function SettingsContent() {
                         value={about}
                         onChange={(e) => setAbout(e.target.value)}
                         placeholder="Brief description of your coffee shop's mission or history..."
-                        rows={8}
-                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-none"
+                        rows={3}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-y min-h-[100px]"
                       />
                     </div>
                   </div>
                 </section>
               </div>
 
-              {/* Right Column: Branding + Status */}
-              <div className="space-y-6">
+              {/* Right Column: Branding */}
+              <div className="h-full">
                 {/* Shop Branding */}
-                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
-                  <h3 className="text-lg font-bold mb-4">Shop Branding</h3>
-                  <div className="flex flex-col items-center gap-6">
+                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm h-full flex flex-col justify-center items-center">
+                  <h3 className="text-lg font-bold mb-8 text-center">Shop Branding</h3>
+                  <div className="flex flex-col items-center gap-8 w-full max-w-sm">
                     <div className="relative group">
-                      <div className="w-32 h-32 rounded-2xl bg-[#7c2d12] flex items-center justify-center text-white text-5xl font-black shadow-lg overflow-hidden">
+                      <div className="w-40 h-40 rounded-3xl bg-[#7c2d12] flex items-center justify-center text-white text-5xl font-black shadow-2xl shadow-orange-900/20 overflow-hidden ring-4 ring-orange-900/10 transition-transform hover:scale-[1.02] duration-500">
                         {logoPreview ? (
                           <img src={logoPreview} alt="Shop Logo" className="w-full h-full object-cover" />
                         ) : (
-                          <span className="material-symbols-outlined text-6xl">coffee</span>
+                          <span className="material-symbols-outlined text-7xl">coffee</span>
                         )}
                       </div>
                       <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#14b83d] text-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                        className="absolute -bottom-3 -right-3 w-12 h-12 bg-[#14b83d] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all z-10"
                       >
-                        <span className="material-symbols-outlined text-xl">edit</span>
+                        <span className="material-symbols-outlined text-2xl">edit</span>
                       </button>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold">Shop Logo</p>
-                      <p className="text-xs text-slate-500 dark:text-[#9db8a4] mt-1">Recommended: 512x512px (PNG or SVG)</p>
+                    <div className="text-center space-y-2">
+                      <p className="text-base font-black tracking-tight">Shop Identity Logo</p>
+                      <p className="text-xs text-slate-500 dark:text-[#9db8a4] max-w-[200px] mx-auto leading-relaxed">
+                        Recommended: 512x512px (PNG or SVG) for optimal display quality.
+                      </p>
                     </div>
-                    <div className="w-full space-y-3">
+                    <div className="w-full max-w-[240px] space-y-3 pt-4">
                       <input 
                         type="file" 
                         ref={fileInputRef} 
@@ -282,30 +331,18 @@ export default function SettingsContent() {
                       />
                       <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full py-2.5 px-4 border-2 border-dashed border-slate-200 dark:border-[#3c5342] rounded-lg text-xs font-bold text-slate-500 dark:text-[#9db8a4] hover:border-[#14b83d] hover:text-[#14b83d] transition-all"
+                        className="w-full py-3 px-4 bg-slate-50 dark:bg-[#112115] border-2 border-dashed border-slate-200 dark:border-[#3c5342] rounded-xl text-xs font-bold text-slate-500 dark:text-[#9db8a4] hover:border-[#14b83d] hover:text-[#14b83d] hover:bg-[#14b83d]/5 transition-all"
                       >
                         Upload New Logo
                       </button>
                       <button 
                         onClick={() => setLogoPreview(null)}
-                        className="w-full py-2 text-xs font-bold text-red-500 hover:underline"
+                        className="w-full py-2 text-xs font-bold text-red-500 hover:text-red-600 transition-colors"
                       >
                         Remove Current Logo
                       </button>
                     </div>
                   </div>
-                </section>
-
-                {/* System Status */}
-                <section className="bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-xl p-6 shadow-sm">
-                  <h3 className="text-sm font-bold mb-3">System Status</h3>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#14b83d]"></div>
-                    <span className="text-sm font-medium">All systems operational</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-[#9db8a4] mt-4 uppercase font-bold tracking-widest">
-                    Version 2.4.0-CoffeeBean
-                  </p>
                 </section>
               </div>
             </div>
@@ -449,6 +486,70 @@ export default function SettingsContent() {
             </div>
           )}
         </div>
+        {/* ─── Logo Cropper Overlay ────────────────────────────────────── */}
+        {isCropping && imageToCrop && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto flex flex-col gap-6 no-scrollbar p-1">
+              <div className="text-center">
+                <h4 className="text-2xl font-black text-white tracking-tight">Crop Shop Logo</h4>
+                <p className="text-white/50 text-xs uppercase tracking-widest font-bold mt-1">Adjust for 1:1 square ratio</p>
+              </div>
+
+              <div className="relative aspect-square w-full bg-[#0a140c] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                <Cropper
+                  image={imageToCrop}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                  cropShape="rect"
+                  showGrid={true}
+                />
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
+                  <span className="material-symbols-outlined text-white/50 text-sm">zoom_out</span>
+                  <input
+                    type="range"
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    value={zoom}
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    className="flex-1 accent-[#14b83d] h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <span className="material-symbols-outlined text-white/50 text-sm">zoom_in</span>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={handleCropCancel}
+                    className="flex-1 py-4 bg-white/5 border border-white/10 text-white text-sm font-bold rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCropSave}
+                    className="flex-[2] py-4 bg-[#14b83d] text-white text-sm font-bold rounded-xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-xl">crop</span>
+                    <span>Apply Crop</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <style>{`
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
       </div>
     </>
   );
