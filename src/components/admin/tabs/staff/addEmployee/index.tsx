@@ -174,89 +174,101 @@ export default function AddEmployeeForm({ onClose, onSuccess }: AddEmployeeFormP
   };
 
   return (
-    <div className="w-full max-w-6xl bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
+    <div className="w-full max-w-6xl max-h-[90vh] flex flex-col bg-white dark:bg-[#1a2e1e] border border-slate-200 dark:border-[#3c5342] rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
       {/* Header */}
       <FormHeader onClose={onClose} />
 
       {/* Form Body */}
-      <form onSubmit={handleSubmit} className="p-5 sm:p-8 md:p-10">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-          {/* Main Content Area */}
-          <div className="flex-[1.4]">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-              {/* Left Column */}
-              <div className="space-y-8">
-                <PersonalInfoFields formData={formData} onChange={handleChange} />
-                <WorkingDaysPicker
-                  selectedDays={formData.workingDays}
-                  onToggle={handleDayToggle}
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-8 md:p-10 add-form-scrollbar">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+            {/* Main Content Area */}
+            <div className="flex-[1.4]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                {/* Left Column */}
+                <div className="space-y-8">
+                  <PersonalInfoFields formData={formData} onChange={handleChange} />
+                  <WorkingDaysPicker
+                    selectedDays={formData.workingDays}
+                    onToggle={handleDayToggle}
+                  />
+                </div>
+
+                {/* Right Column */}
+                <AccountSettingsFields
+                  formData={formData}
+                  onChange={handleChange}
+                  onActiveToggle={handleActiveToggle}
                 />
               </div>
-
-              {/* Right Column */}
-              <AccountSettingsFields
-                formData={formData}
-                onChange={handleChange}
-                onActiveToggle={handleActiveToggle}
-              />
             </div>
-          </div>
 
-          {/* Avatar Section - Right Side */}
-          <div className="lg:w-72 w-full max-w-[260px] mx-auto lg:mx-0 shrink-0 flex flex-col items-center border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-[#3c5342]/30 pt-8 lg:pt-0 lg:pl-12 mt-4 lg:mt-0">
-            <div className="w-full max-w-[260px] lg:max-w-none mb-4">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#9db8a4] mb-4 text-center lg:text-left">
-                Employee Photo
-              </label>
-              
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="relative group cursor-pointer w-full aspect-square bg-slate-50 dark:bg-[#112115] rounded-2xl border-2 border-dashed border-slate-200 dark:border-[#3c5342] flex flex-col items-center justify-center hover:border-[#14b83d] transition-all duration-300 overflow-hidden shadow-sm"
-              >
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={handleFileSelect} 
-                />
+            {/* Avatar Section - Right Side */}
+            <div className="lg:w-72 w-full max-w-[260px] mx-auto lg:mx-0 shrink-0 flex flex-col items-center border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-[#3c5342]/30 pt-8 lg:pt-0 lg:pl-12 mt-4 lg:mt-0">
+              <div className="w-full max-w-[260px] lg:max-w-none mb-4">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#9db8a4] mb-4 text-center lg:text-left">
+                  Employee Photo
+                </label>
                 
-                {previewUrl ? (
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" />
-                ) : (
-                  <div className="flex flex-col items-center text-slate-400 dark:text-[#3c5342] group-hover:text-[#14b83d] transition-colors">
-                    <span className="material-symbols-outlined text-6xl mb-3" style={{ fontVariationSettings: "'wght' 200" }}>add_a_photo</span>
-                    <p className="uppercase tracking-[0.2em] text-[10px] font-black">Upload Photo</p>
-                  </div>
-                )}
-                
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                  <div className="bg-white/10 p-4 rounded-full border border-white/20">
-                    <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative group cursor-pointer w-full aspect-square bg-slate-50 dark:bg-[#112115] rounded-2xl border-2 border-dashed border-slate-200 dark:border-[#3c5342] flex flex-col items-center justify-center hover:border-[#14b83d] transition-all duration-300 overflow-hidden shadow-sm"
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleFileSelect} 
+                  />
+                  
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" />
+                  ) : (
+                    <div className="flex flex-col items-center text-slate-400 dark:text-[#3c5342] group-hover:text-[#14b83d] transition-colors">
+                      <span className="material-symbols-outlined text-6xl mb-3" style={{ fontVariationSettings: "'wght' 200" }}>add_a_photo</span>
+                      <p className="uppercase tracking-[0.2em] text-[10px] font-black">Upload Photo</p>
+                    </div>
+                  )}
+                  
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                    <div className="bg-white/10 p-4 rounded-full border border-white/20">
+                      <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Error Banner */}
+          {error && (
+            <div className="mt-5 flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/15 border border-red-200 dark:border-red-800/40 rounded-lg">
+              <span className="material-symbols-outlined text-red-500 text-lg flex-shrink-0 mt-0.5">error</span>
+              <p className="text-xs text-red-700 dark:text-red-300 leading-snug">{error}</p>
+            </div>
+          )}
         </div>
 
-        {/* Error Banner */}
-        {error && (
-          <div className="mt-5 flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/15 border border-red-200 dark:border-red-800/40 rounded-lg">
-            <span className="material-symbols-outlined text-red-500 text-lg flex-shrink-0 mt-0.5">error</span>
-            <p className="text-xs text-red-700 dark:text-red-300 leading-snug">{error}</p>
+          {/* Info Banner */}
+          <div className="mt-8 flex items-center gap-2 p-3 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-lg">
+            <span className="material-symbols-outlined text-blue-500 text-lg">info</span>
+            <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-tight">
+              New employees will be required to change their password upon first login. Shift times are
+              managed in General Settings.
+            </p>
           </div>
-        )}
+        </div>
 
-        {/* Footer: info banner + action buttons */}
+        {/* Footer: action buttons only */}
         <FormFooter onClose={onClose} onSubmit={handleSubmit} isLoading={isLoading} />
       </form>
 
       {/* ─── Cropper Overlay ────────────────────────────────────── */}
       {isCropping && imageToCrop && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in duration-300">
-          <div className="w-full max-w-xl flex flex-col gap-6">
+          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto flex flex-col gap-6 no-scrollbar p-1">
             <div className="text-center">
               <h4 className="text-2xl font-black text-white tracking-tight">Crop Profile Photo</h4>
               <p className="text-white/50 text-xs uppercase tracking-widest font-bold mt-1">Adjust for 1:1 ratio</p>
@@ -312,6 +324,16 @@ export default function AddEmployeeForm({ onClose, onSuccess }: AddEmployeeFormP
           </div>
         </div>
       )}
+
+      {/* Scoped scrollbar styles */}
+      <style>{`
+        .add-form-scrollbar::-webkit-scrollbar { width: 6px; }
+        .add-form-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .add-form-scrollbar::-webkit-scrollbar-thumb { background: #3c5342; border-radius: 10px; }
+        .add-form-scrollbar::-webkit-scrollbar-thumb:hover { background: #14b83d; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }

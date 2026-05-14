@@ -124,12 +124,7 @@ export const dashboardService = {
 
     const response = await api.post<CreateEmployeeResponse>(
       '/api/v1/admin-dashboard/create-employee-account',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      formData
     );
     return response.data;
   },
@@ -167,9 +162,7 @@ export const dashboardService = {
       formData.append('image', payload.image);
     }
 
-    await api.patch(`/api/v1/admin-dashboard/product/${productId}/patch-product`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    await api.patch(`/api/v1/admin-dashboard/product/${productId}/patch-product`, formData);
   },
 
   async addProduct(payload: any): Promise<ProductItem> {
@@ -190,10 +183,7 @@ export const dashboardService = {
 
     const response = await api.post<ProductItem>(
       '/api/v1/admin-dashboard/add-product',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      }
+      formData
     );
     return response.data;
   },
@@ -220,12 +210,7 @@ export const dashboardService = {
 
     const response = await api.patch<StaffAPI>(
       `/api/v1/admin-dashboard/edit/${id}/staff`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      formData
     );
     return response.data;
   },
