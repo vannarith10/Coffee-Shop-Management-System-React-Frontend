@@ -249,8 +249,6 @@ export default function AddEmployeeForm({ onClose, onSuccess }: AddEmployeeFormP
               <p className="text-xs text-red-700 dark:text-red-300 leading-snug">{error}</p>
             </div>
           )}
-        </div>
-
           {/* Info Banner */}
           <div className="mt-8 flex items-center gap-2 p-3 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-lg">
             <span className="material-symbols-outlined text-blue-500 text-lg">info</span>
