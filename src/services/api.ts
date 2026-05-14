@@ -39,6 +39,21 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Fix for Spring Boot multipart/form-data charset issue
+    // If the browser/axios appends ;charset=UTF-8 to multipart requests, some backends reject it
+    if (
+      config.headers &&
+      config.headers["Content-Type"] &&
+      typeof config.headers["Content-Type"] === "string" &&
+      config.headers["Content-Type"].includes("multipart/form-data")
+    ) {
+      config.headers["Content-Type"] = config.headers["Content-Type"].replace(
+        /;charset=utf-8/i,
+        ""
+      );
+    }
+
     return config;
   },
   (error) => Promise.reject(error),

@@ -111,11 +111,11 @@ export const dashboardService = {
     const { image, ...dataFields } = payload;
 
     // The backend expects "data" as a JSON part (AddNewEmployeeRequest)
-    // We use a Blob to specify the application/json content type for this part
-    const jsonBlob = new Blob([JSON.stringify(dataFields)], {
+    // We use a File object to specify the application/json content type for this part
+    const jsonFile = new File([JSON.stringify(dataFields)], 'data.json', {
       type: 'application/json',
     });
-    formData.append('data', jsonBlob);
+    formData.append('data', jsonFile);
 
     // The backend expects "image" as a multipart file part
     if (image) {
@@ -198,10 +198,10 @@ export const dashboardService = {
     const { image, ...requestData } = payload;
 
     // Backend expects 'request' as a JSON part
-    const jsonBlob = new Blob([JSON.stringify(requestData)], {
+    const jsonFile = new File([JSON.stringify(requestData)], 'request.json', {
       type: 'application/json',
     });
-    formData.append('request', jsonBlob);
+    formData.append('request', jsonFile);
 
     // Backend expects 'image' as a multipart file part
     if (image) {
