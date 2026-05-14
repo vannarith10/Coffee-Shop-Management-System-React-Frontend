@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { NAV_ITEMS } from "./constants";
+import { useShop } from "../../../context/ShopContext";
 
 interface SidebarProps {
   onLogout: () => void;
@@ -12,6 +13,8 @@ export default function Sidebar({
   isOpen,
   onClose,
 }: SidebarProps) {
+  const { shopName, shopLogo } = useShop();
+
   return (
     <>
       {/* Backdrop for mobile */}
@@ -30,11 +33,15 @@ export default function Sidebar({
         {/* Logo */}
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#7c2d12] flex items-center justify-center text-white">
-              <span className="material-symbols-outlined">coffee</span>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white overflow-hidden">
+              {shopLogo ? (
+                <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-[#7c2d12]">coffee</span>
+              )}
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-none">A5 Coffee</h1>
+              <h1 className="text-lg font-bold leading-none">{shopName}</h1>
               <p className="text-xs text-slate-500 dark:text-[#9db8a4]">
                 Management System
               </p>

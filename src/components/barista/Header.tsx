@@ -1,6 +1,9 @@
 import React from 'react';
 import { Coffee } from 'lucide-react';
 import { FilterTabs } from './FilterTabs';
+import { useShop } from '../../context/ShopContext';
+
+
 
 type TabKey = 'all' | 'preparing' | 'done';
 
@@ -16,18 +19,27 @@ export const Header: React.FC<HeaderProps> = ({
   onTabChange, 
   activeCount ,
   handleLogout
-}) => (
-  <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-[#f6f8f6]/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md px-6 py-4">
+}) => {
+  const { shopName, shopLogo } = useShop();
+  
+  return (
+    <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-[#f6f8f6]/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md px-6 py-4">
+
     <div className="mx-auto flex items-center justify-between">
 
 
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-emerald-500 rounded-lg text-black">
-            <Coffee className="w-6 h-6 block" />
+          <div className="w-9 h-9 rounded-full text-black flex items-center justify-center overflow-hidden">
+            {shopLogo ? (
+              <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" />
+            ) : (
+              <Coffee className="w-6 h-6 block text-emerald-500" />
+            )}
           </div>
-          <h1 className="text-xl font-extrabold tracking-tight">BARISTA KDS</h1>
+          <h1 className="text-xl font-extrabold tracking-tight">{shopName} KDS</h1>
         </div>
+
         <div className="h-6 w-px bg-slate-700 mx-2 hidden sm:block"></div>
       </div>
 
@@ -45,4 +57,5 @@ export const Header: React.FC<HeaderProps> = ({
 
     </div>
   </header>
-);
+  );
+};

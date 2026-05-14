@@ -10,6 +10,16 @@ import type {
 } from "../components/admin/tabs/staff/types";
 import type { ReportsResponse } from "../components/admin/tabs/reports/types";
 
+export interface ShopProfileResponse {
+  name: string;
+  contact: string;
+  address: string;
+  description: string;
+  image_url: string | null;
+  region: string;
+}
+
+
 export interface ProductItem {
   id: string;
   name: string;
@@ -219,4 +229,51 @@ export const dashboardService = {
     const response = await api.get<string[]>('/api/v1/admin-dashboard/get-all-categories');
     return response.data;
   },
+
+  async getShopProfile(): Promise<ShopProfileResponse> {
+    const response = await api.get<ShopProfileResponse>('/api/v1/admin-dashboard/shop-profile');
+    return response.data;
+  },
+
+  async updateShopProfile(payload: {
+    name?: string;
+    contact?: string;
+    address?: string;
+    description?: string;
+    region?: string;
+    image?: File | null;
+  }): Promise<ShopProfileResponse> {
+    const formData = new FormData();
+    
+    // Create the 'request' JSON part
+    const requestData = {
+      name: payload.name,
+      contact: payload.contact,
+      address: payload.address,
+      description: payload.description,
+      region: payload.region
+    };
+    
+    // We send the JSON as a Blob/File with type application/json so the backend recognizes it
+    const jsonBlob = new Blob([JSON.stringify(requestData)], { type: 'application/json' });
+    formData.append('request', jsonBlob);
+
+    // The backend expects "image" as a multipart file part
+    if (payload.image) {
+      formData.append('image', payload.image);
+    }
+
+    const response = await api.patch<ShopProfileResponse>('/api/v1/admin-dashboard/update-profile', formData);
+    return response.data;
+  },
+
+  async getShopBranding(): Promise<{ name: string; image_url: string | null }> {
+    // This endpoint is public, but we still use our 'api' instance
+    // The interceptor will simply not find a token and won't add the Header
+    const response = await api.get<{ name: string; image_url: string | null }>(
+      '/api/v1/admin-dashboard/shop-name/shop-image'
+    );
+    return response.data;
+  },
 };
+

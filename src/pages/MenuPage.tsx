@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { usePublicMenu } from "../hooks/usePublicMenu";
 import { getUser, getUserRole, logout } from "../services/authService";
 import LoginModal from "../components/LoginModal";
+import { useShop } from "../context/ShopContext";
+
 import { TypeFilter } from "../components/cashier/products/TypeFilter";
 import { NameFilter } from "../components/cashier/products/NameFilter";
 import { ProductGrid } from "../components/cashier/products/ProductGrid";
@@ -14,6 +16,8 @@ export default function MenuPage() {
   const navigate = useNavigate();
   const user = getUser();
   const role = getUserRole();
+  const { shopName, shopLogo } = useShop();
+
 
   const [showLogin, setShowLogin] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -111,13 +115,18 @@ export default function MenuPage() {
         <header className="sticky top-0 z-40 backdrop-blur-md bg-black/50 border-b border-white/10 px-6 py-4 flex items-center justify-between gap-4">
           {/* Branding */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#14b83d]/20 border border-[#14b83d]/40 flex items-center justify-center shrink-0">
-              <span className="text-lg">☕</span>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 overflow-hidden">
+              {shopLogo ? (
+                <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">☕</span>
+              )}
             </div>
             <div>
               <h1 className="text-white font-extrabold text-lg leading-tight tracking-tight">
-                Coffee Shop
+                {shopName}
               </h1>
+
               <p className="text-[#9db8a4] text-[11px] font-medium">
                 {totalElements > 0 ? `${totalElements} items on our menu` : "Our Menu"}
               </p>
@@ -258,8 +267,9 @@ export default function MenuPage() {
 
         {/* ── Footer ────────────────────────────────────────────────────────── */}
         <footer className="text-center py-4 text-white/30 text-xs border-t border-white/10 backdrop-blur-sm bg-black/30">
-          © {new Date().getFullYear()} Coffee Shop · Digital Menu
+          © {new Date().getFullYear()} {shopName} · Digital Menu
         </footer>
+
       </div>
     </>
   );

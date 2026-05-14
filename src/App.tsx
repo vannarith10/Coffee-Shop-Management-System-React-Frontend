@@ -1,5 +1,9 @@
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
+import { ShopProvider } from "./context/ShopContext";
+
+
 import MenuPage from "./pages/MenuPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import CashierPOS from "./pages/CashierPOS";
@@ -65,10 +69,14 @@ function RootRoute() {
   }
 }
 
+
 export default function App() {
+
   return (
-    <BrowserRouter>
-      <Toaster position="top-center" richColors />
+    <ShopProvider>
+      <BrowserRouter>
+        <Toaster position="top-center" richColors />
+
       <Routes>
         {/* /login is gone — redirect anyone visiting it to the menu */}
         <Route path="/login" element={<Navigate to="/" replace />} />
@@ -107,6 +115,7 @@ export default function App() {
           }
         />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ShopProvider>
   );
 }

@@ -1,7 +1,12 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../../utils/cropImage';
 import { toast } from 'sonner';
+import { dashboardService } from '../../../../services/adminDashboardService';
+import { getAccessToken, getRefreshToken } from '../../../../services/authService';
+import { useShop } from '../../../../context/ShopContext';
+
+
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -13,15 +18,8 @@ interface ThemeOption {
 
 // ─── Data ────────────────────────────────────────────────────────────
 
-const regions = [
-  { value: '', label: 'Select your region', disabled: true },
-  { value: 'southeast_asia', label: 'Southeast Asia' },
-  { value: 'north_america', label: 'North America' },
-  { value: 'europe', label: 'Europe' },
-  { value: 'others', label: 'Others' },
-];
-
 const themeOptions: ThemeOption[] = [
+
   { icon: 'settings_brightness', label: 'System', value: 'system' },
   { icon: 'light_mode', label: 'Light', value: 'light' },
   { icon: 'dark_mode', label: 'Dark', value: 'dark' },
@@ -39,15 +37,53 @@ const printerMethods = ['IP Network', 'Bluetooth'];
 export default function SettingsContent() {
   const [activeTab, setActiveTab] = useState('Shop Profile');
   const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Shop Profile State
-  const [shopName, setShopName] = useState('A5 Coffee');
-  const [contact, setContact] = useState('+1 (555) 123-4567');
-  const [address, setAddress] = useState('123 Espresso Way, Downtown District, Seattle, WA 98101');
+
+  const [shopName, setShopName] = useState('');
+  const [contact, setContact] = useState('');
+  const [address, setAddress] = useState('');
   const [region, setRegion] = useState('');
   const [about, setAbout] = useState('');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { refreshShopProfile } = useShop();
+
+  useEffect(() => {
+    const fetchShopProfile = async () => {
+      if (!getAccessToken() && !getRefreshToken()) return;
+      
+      setIsLoading(true);
+
+      try {
+        const data = await dashboardService.getShopProfile();
+        setShopName(data.name);
+        setContact(data.contact);
+        setAddress(data.address);
+        setRegion(data.region);
+        setAbout(data.description);
+        
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+        const logoUrl = data.image_url 
+          ? (data.image_url.startsWith('http') || data.image_url.startsWith('blob:')
+              ? data.image_url 
+              : `${API_BASE_URL}${data.image_url}`)
+          : null;
+        setLogoPreview(logoUrl);
+      } catch (error) {
+        console.error("Error fetching shop profile:", error);
+        toast.error("Failed to load shop profile data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchShopProfile();
+  }, []);
+
 
   // App Preferences State
   const [selectedTheme, setSelectedTheme] = useState('system');
@@ -104,6 +140,7 @@ export default function SettingsContent() {
         
         const newPreviewUrl = URL.createObjectURL(croppedImageBlob);
         setLogoPreview(newPreviewUrl);
+        setLogoFile(new File([croppedImageBlob], 'shop_logo.jpg', { type: 'image/jpeg' }));
         
         setIsCropping(false);
         setImageToCrop(null);
@@ -121,8 +158,50 @@ export default function SettingsContent() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleConfirm = () => {
-    setShowModal(false);
+  const handleConfirm = async () => {
+    // Validation based on Backend DTO constraints
+    if (shopName.length > 100) {
+      toast.error("Shop name cannot exceed 100 characters");
+      return;
+    }
+    if (contact.length > 100) {
+      toast.error("Contact number cannot exceed 100 characters");
+      return;
+    }
+    if (address.length > 150) {
+      toast.error("Address cannot exceed 150 characters");
+      return;
+    }
+    if (about.length > 250) {
+      toast.error("Description cannot exceed 250 characters");
+      return;
+    }
+    if (region.length > 50) {
+      toast.error("Region cannot exceed 50 characters");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await dashboardService.updateShopProfile({
+        name: shopName,
+        contact,
+        address,
+        description: about,
+        region,
+        image: logoFile
+      });
+      
+      await refreshShopProfile();
+      toast.success("Shop profile updated successfully!");
+      setShowModal(false);
+    } catch (error: any) {
+      console.error("Error saving shop profile:", error);
+      const detail = error.response?.data?.detail || "Failed to update shop profile";
+      toast.error(detail);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -218,8 +297,17 @@ export default function SettingsContent() {
         </header>
 
         {/* Content */}
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 relative">
+          {isLoading && (
+            <div className="absolute inset-0 z-10 bg-white/50 dark:bg-[#0d1a10]/50 backdrop-blur-[2px] flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-[#14b83d] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-sm font-bold text-[#14b83d]">Loading shop profile...</p>
+              </div>
+            </div>
+          )}
           {activeTab === 'Shop Profile' && (
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Form */}
               <div className="lg:col-span-2">
@@ -237,6 +325,7 @@ export default function SettingsContent() {
                         type="text"
                         value={shopName}
                         onChange={(e) => setShopName(e.target.value)}
+                        maxLength={100}
                         className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all"
                       />
                     </div>
@@ -248,6 +337,7 @@ export default function SettingsContent() {
                         type="tel"
                         value={contact}
                         onChange={(e) => setContact(e.target.value)}
+                        maxLength={100}
                         className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all"
                       />
                     </div>
@@ -259,6 +349,7 @@ export default function SettingsContent() {
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
                         rows={2}
+                        maxLength={150}
                         className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-y min-h-[60px]"
                       />
                     </div>
@@ -266,18 +357,16 @@ export default function SettingsContent() {
                     {/* Region */}
                     <div className="md:col-span-2 space-y-2">
                       <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Shop Region</label>
-                      <select
+                      <input
+                        type="text"
                         value={region}
                         onChange={(e) => setRegion(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all appearance-none cursor-pointer"
-                      >
-                        {regions.map((r) => (
-                          <option key={r.value} value={r.value} disabled={r.disabled}>
-                            {r.label}
-                          </option>
-                        ))}
-                      </select>
+                        maxLength={50}
+                        className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all"
+                        placeholder="e.g. Asia/Phnom_Penh"
+                      />
                     </div>
+
 
                     {/* About */}
                     <div className="md:col-span-2 space-y-2">
@@ -287,6 +376,7 @@ export default function SettingsContent() {
                         onChange={(e) => setAbout(e.target.value)}
                         placeholder="Brief description of your coffee shop's mission or history..."
                         rows={3}
+                        maxLength={250}
                         className="w-full bg-slate-50 dark:bg-[#112115] border border-slate-200 dark:border-[#29382d] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#14b83d] focus:border-[#14b83d] outline-none transition-all resize-y min-h-[100px]"
                       />
                     </div>
@@ -301,11 +391,11 @@ export default function SettingsContent() {
                   <h3 className="text-lg font-bold mb-8 text-center">Shop Branding</h3>
                   <div className="flex flex-col items-center gap-8 w-full max-w-sm">
                     <div className="relative group">
-                      <div className="w-40 h-40 rounded-3xl bg-[#7c2d12] flex items-center justify-center text-white text-5xl font-black shadow-2xl shadow-orange-900/20 overflow-hidden ring-4 ring-orange-900/10 transition-transform hover:scale-[1.02] duration-500">
+                      <div className="w-40 h-40 rounded-full flex items-center justify-center text-white text-5xl font-black overflow-hidden ring-4 ring-orange-900/10 transition-transform hover:scale-[1.02] duration-500">
                         {logoPreview ? (
                           <img src={logoPreview} alt="Shop Logo" className="w-full h-full object-cover" />
                         ) : (
-                          <span className="material-symbols-outlined text-7xl">coffee</span>
+                          <span className="material-symbols-outlined text-7xl text-[#7c2d12]">coffee</span>
                         )}
                       </div>
                       <button 

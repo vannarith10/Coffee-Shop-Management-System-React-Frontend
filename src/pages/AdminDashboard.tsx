@@ -16,11 +16,16 @@ import StaffContent from "../components/admin/tabs/staff/StaffContent";
 import ProductsContent from "../components/admin/tabs/products/ProductsContent";
 import ReportsContent from "../components/admin/tabs/reports/ReportsContent";
 import SettingsContent from "../components/admin/tabs/settings/SettingsContent";
+import { useShop } from "../context/ShopContext";
+
+
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = getUser();
+  const { shopName, shopLogo, refreshShopProfile } = useShop();
+
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -39,6 +44,7 @@ export default function AdminDashboard() {
   // Fetch data on mount with auto-refresh every 5 minutes
   useEffect(() => {
     fetchDashboardData();
+    refreshShopProfile(); // Ensure global shop data is fresh
     const interval = setInterval(fetchDashboardData, 300000);
     return () => clearInterval(interval);
   }, []);
@@ -110,11 +116,16 @@ export default function AdminDashboard() {
           {/* Mobile Header Toggle */}
           <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-[#0d1a10] border-b border-slate-200 dark:border-[#29382d] sticky top-0 z-20">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#7c2d12] flex items-center justify-center text-white">
-                <span className="material-symbols-outlined text-xl">coffee</span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white overflow-hidden">
+                {shopLogo ? (
+                  <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-xl text-[#7c2d12]">coffee</span>
+                )}
               </div>
-              <span className="font-bold">A5 Coffee</span>
+              <span className="font-bold">{shopName}</span>
             </div>
+
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
               className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a2e1e]"

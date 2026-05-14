@@ -1,11 +1,26 @@
 import React from "react";
 import { HeaderProps } from "../../../types/pos";
+import { useShop } from "../../../context/ShopContext";
+
+
 
 export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
+  const { shopName, shopLogo } = useShop();
+
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-bold text-gray-800">🛒 Cashier POS</h1>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white overflow-hidden">
+            {shopLogo ? (
+              <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="material-symbols-outlined text-lg text-[#7c2d12]">coffee</span>
+            )}
+          </div>
+          <h1 className="text-xl font-bold text-gray-800">{shopName} POS</h1>
+        </div>
+
         <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
           {username}
         </span>
