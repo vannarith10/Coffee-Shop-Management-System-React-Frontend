@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
 import { logout, getUser } from "../services/authService";
 import {
   dashboardService,
@@ -19,10 +19,16 @@ import SettingsContent from "../components/admin/tabs/settings/SettingsContent";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = getUser();
-  const [activeTab, setActiveTab] = useState("dashboard");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Derive active tab from pathname
+  const activeTab = useMemo(() => {
+    const path = location.pathname.split('/').pop() || 'dashboard';
+    return path === 'admin' ? 'dashboard' : path;
+  }, [location.pathname]);
 
   // API Data State
   const [summaryData, setSummaryData] = useState<SummaryResponse | null>(null);
@@ -91,51 +97,10 @@ export default function AdminDashboard() {
     navigate("/login");
   };
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle("dark");
-  };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return (
-          <DashboardContent
-            stats={getDisplayStats()}
-            loading={loading}
-            error={error}
-            lastUpdated={lastUpdated}
-          />
-        );
-      case "staff":
-        return <StaffContent />;
-      case "products":
-        return <ProductsContent />;
-      case "reports":
-        return <ReportsContent />;
-      case "settings":
-        return <SettingsContent />;
-      default:
-        return (
-          <DashboardContent
-            stats={getDisplayStats()}
-            loading={loading}
-            error={error}
-            lastUpdated={lastUpdated}
-          />
-        );
-    }
-  };
-
   return (
     <div className={`${isDarkMode ? "dark" : ""}`}>
       <div className="flex h-screen overflow-hidden bg-[#f6f8f6] dark:bg-[#112115] font-['Inter',sans-serif] text-slate-900 dark:text-slate-100 antialiased">
         <Sidebar
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            setIsMobileMenuOpen(false);
-          }}
           onLogout={handleLogout}
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
@@ -157,7 +122,8 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined">menu</span>
             </button>
           </div>
-          {!["staff", "products", "reports", "settings"].includes(activeTab) && (
+          
+          {activeTab === 'dashboard' && (
             <DashboardHeader
               activeTab={activeTab}
               loading={loading}
@@ -167,7 +133,25 @@ export default function AdminDashboard() {
 
           {error && <ErrorBanner error={error} onRetry={fetchDashboardData} />}
 
-          {renderContent()}
+          <Routes>
+            <Route 
+              index 
+              element={
+                <DashboardContent
+                  stats={getDisplayStats()}
+                  loading={loading}
+                  error={error}
+                  lastUpdated={lastUpdated}
+                />
+              } 
+            />
+            <Route path="staff" element={<StaffContent />} />
+            <Route path="products" element={<ProductsContent />} />
+            <Route path="reports" element={<ReportsContent />} />
+            <Route path="settings" element={<SettingsContent />} />
+            {/* Fallback to dashboard */}
+            <Route path="*" element={<DashboardContent stats={getDisplayStats()} loading={loading} error={error} lastUpdated={lastUpdated} />} />
+          </Routes>
         </main>
       </div>
 

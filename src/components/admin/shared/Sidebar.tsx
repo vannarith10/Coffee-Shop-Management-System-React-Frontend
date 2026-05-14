@@ -1,16 +1,13 @@
+import { NavLink } from "react-router-dom";
 import { NAV_ITEMS } from "./constants";
 
 interface SidebarProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
   onLogout: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function Sidebar({
-  activeTab,
-  onTabChange,
   onLogout,
   isOpen,
   onClose,
@@ -54,18 +51,22 @@ export default function Sidebar({
         {/* Navigation */}
         <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
           {NAV_ITEMS.map((item) => (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => onTabChange(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === item.id
-                  ? "bg-[#14b83d]/15 text-[#14b83d] border-l-4 border-[#14b83d] font-semibold"
-                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1a2e1e]"
-              }`}
+              to={item.id === 'dashboard' ? '/admin' : `/admin/${item.id}`}
+              end={item.id === 'dashboard'}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-[#14b83d]/15 text-[#14b83d] border-l-4 border-[#14b83d] font-semibold"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1a2e1e]"
+                }`
+              }
             >
               <span className="material-symbols-outlined">{item.icon}</span>
               <span>{item.label}</span>
-            </button>
+            </NavLink>
           ))}
         </nav>
 
