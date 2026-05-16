@@ -59,7 +59,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             <h2 className={glassHeader("blue")}>
               ☕ Drinks ({drinks.length})
             </h2>
-            <div className="grid grid-cols-[repeat(auto-fill,300px)] gap-8 justify-center place-content-start ">
+            <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:grid-cols-[repeat(auto-fill,300px)] gap-3 sm:gap-8 justify-center place-content-start ">
               {drinks.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -80,7 +80,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
               <span className="drop-shadow-[0_0_8px_rgba(255,165,0,0.5)]">🍽️</span>
               <span>Food ({foods.length})</span>
             </h2>
-            <div className="grid grid-cols-[repeat(auto-fill,300px)] gap-8 justify-center place-content-start">
+            <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:grid-cols-[repeat(auto-fill,300px)] gap-3 sm:gap-8 justify-center place-content-start">
               {foods.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -108,7 +108,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 >
   {categoryName} ({items.length})
 </h2>
-          <div className="grid grid-cols-[repeat(auto-fill,300px)] gap-8 justify-center place-content-start">
+          <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:grid-cols-[repeat(auto-fill,300px)] gap-3 sm:gap-8 justify-center place-content-start">
             {items.map((product) => (
               <ProductCard
                 key={product.id}

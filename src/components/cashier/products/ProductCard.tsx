@@ -5,8 +5,8 @@ import { ProductCardProps } from "../../../types/pos";
 
 const glassCard = (isDrink:boolean, inStock:boolean|null) => `
   relative flex flex-col
-  w-[300px] h-[380px]
-  rounded-[14px] p-4
+  w-full h-full
+  rounded-[14px] p-2 sm:p-4
   text-left overflow-hidden
   cursor-pointer
   transition-all duration-[800ms]
@@ -35,13 +35,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       disabled={!product.in_stock}
       className={glassCard(isDrink, product.in_stock)}
     >
-      <div className="relative w-full h-[260px] shrink-0 mb-3">
+      <div 
+        className="relative w-full shrink-0 mb-2 sm:mb-3 overflow-hidden rounded-lg"
+        style={{ aspectRatio: '1/1' }}
+      >
         <img
           src={
-            product.image_url || "https://placehold.co/200x140?text=No+Image"
+            product.image_url || "https://placehold.co/400x400?text=No+Image"
           }
           alt={product.name}
-          className="w-full h-full object-cover rounded-lg"
+          className="absolute inset-0 w-full h-full object-cover"
           loading="lazy"
         />
         {!product.in_stock && (
@@ -65,14 +68,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       <div className="flex-1 flex flex-col justify-between min-h-0">
         <div>
-          <h3 className="font-semibold text-[#EBBF58] text-md line-clamp-2 leading-tight mb-1">
+          <h3 className="font-semibold text-[#EBBF58] text-sm sm:text-md line-clamp-2 leading-tight mb-1">
             {product.name}
           </h3>
-          <p className="text-xs text-[#B1CBFA] truncate">
+          <p className="text-[10px] sm:text-xs text-[#B1CBFA] truncate">
             {product.category_name}
           </p>
         </div>
-        <p className="text-2xl font-bold text-white mt-2">
+        <p className="text-lg sm:text-2xl font-bold text-white mt-1 sm:mt-2">
           ${product.price.toFixed(2)}
         </p>
       </div>

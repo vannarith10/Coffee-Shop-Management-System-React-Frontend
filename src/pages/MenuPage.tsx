@@ -202,11 +202,12 @@ export default function MenuPage() {
 
           {/* Loading skeleton */}
           {loading && (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:grid-cols-[repeat(auto-fill,300px)] gap-3 sm:gap-8">
               {Array.from({ length: 12 }).map((_, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl bg-white/10 animate-pulse h-72"
+                  className="rounded-2xl bg-white/10 animate-pulse"
+                  style={{ aspectRatio: '1/1' }}
                 />
               ))}
             </div>
